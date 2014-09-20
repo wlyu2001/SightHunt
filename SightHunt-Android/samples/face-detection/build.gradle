@@ -1,0 +1,33 @@
+apply plugin: 'android'
+
+import org.apache.tools.ant.taskdefs.condition.Os
+
+dependencies {
+    compile fileTree(dir: 'libs', include: '*.jar')
+    compile project(':libs:opencv')
+}
+
+android {
+    compileSdkVersion 14
+    buildToolsVersion "20.0.0"
+
+    sourceSets {
+        main {
+            jni.srcDirs = [] //disable automatic ndk-build call
+            jniLibs.srcDirs = ['src/main/libs']
+        }
+    }
+}
+
+// call regular ndk-build(.cmd) script from app directory
+task ndkBuild(type: Exec) {
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        commandLine 'ndk-build.cmd', '-C', file('src/main').absolutePath
+    } else {
+        commandLine 'ndk-build', '-C', file('src/main').absolutePath
+    }
+}
+
+tasks.withType(JavaCompile) {
+    compileTask -> compileTask.dependsOn ndkBuild
+}
