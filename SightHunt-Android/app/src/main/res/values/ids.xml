@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="loader_most_hunted_sights" type="id"/>
+    <item name="loader_session" type="id"/>
+
+</resources>

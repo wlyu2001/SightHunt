@@ -1,11 +1,19 @@
 apply plugin: 'com.android.application'
+import org.apache.tools.ant.taskdefs.condition.Os
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'SightHuntKey'
+            keyPassword 'lCdBLpa4DC643346'
+            storeFile file('/Users/lingyu/Projects/SightHunt/sighthunt.jks')
+            storePassword 'lCdBLpa4DC643346'
+        }
+    }
     compileSdkVersion 20
     buildToolsVersion "20.0.0"
-
     defaultConfig {
-        applicationId "com.camhunt.camhunt_android"
+        applicationId "com.sighthunt"
         minSdkVersion 15
         targetSdkVersion 20
         versionCode 1
@@ -15,6 +23,16 @@ android {
         release {
             runProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
+        }
+        debug {
+            applicationIdSuffix '.debug'
+        }
+    }
+    sourceSets {
+        main {
+            jni.srcDirs = [] //disable automatic ndk-build call
+            jniLibs.srcDirs = ['src/main/libs']
         }
     }
 }
@@ -24,4 +42,10 @@ dependencies {
     compile 'com.android.support:support-v13:20.0.0'
     compile 'com.squareup.retrofit:retrofit:1.6.1'
     compile 'com.squareup.okhttp:okhttp:2.0.0'
+    compile 'com.squareup.okhttp:okhttp-urlconnection:2.0.0'
+    compile 'com.intellij:annotations:+@jar'
+    compile 'com.squareup.picasso:picasso:2.3.4'
+    compile project(':libs:opencv')
+    compile project(':libs:facebook')
+    compile 'com.google.android.gms:play-services:5.+'
 }

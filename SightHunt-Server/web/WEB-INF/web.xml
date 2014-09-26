@@ -3,4 +3,75 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
          version="3.1">
+
+    <servlet>
+        <servlet-name>new-sight</servlet-name>
+        <servlet-class>com.sighthunt.sight.NewSightServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>edit-sight</servlet-name>
+        <servlet-class>com.sighthunt.sight.EditSightServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>list-sights</servlet-name>
+        <servlet-class>com.sighthunt.sight.ListSightsServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>fetch-sight</servlet-name>
+        <servlet-class>com.sighthunt.sight.FetchSightServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>edit-user</servlet-name>
+        <servlet-class>com.sighthunt.user.EditUserServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>new-user</servlet-name>
+        <servlet-class>com.sighthunt.user.SignUpServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>fetch-user</servlet-name>
+        <servlet-class>com.sighthunt.user.FetchUserServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>new-sight</servlet-name>
+        <url-pattern>/sight/new</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>edit-sight</servlet-name>
+        <url-pattern>/sight/edit</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>list-sights</servlet-name>
+        <url-pattern>/sight/list</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>fetch-sight</servlet-name>
+        <url-pattern>/sight/fetch</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>fetch-user</servlet-name>
+        <url-pattern>/user/fetch</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>new-user</servlet-name>
+        <url-pattern>/user/new</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>edit-user</servlet-name>
+        <url-pattern>/user/edit</url-pattern>
+    </servlet-mapping>
+
 </web-app>
