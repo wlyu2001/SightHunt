@@ -42,7 +42,7 @@ public class LoginFragment extends Fragment {
 			public void onClick(View v) {
 				String username = mEditTextUserName.getText().toString();
 				String password = mEditTextPassword.getText().toString();
-				mLoginActivity.loginWithCredentials(username, password);
+				mLoginActivity.login(username, password);
 			}
 		});
 		return view;

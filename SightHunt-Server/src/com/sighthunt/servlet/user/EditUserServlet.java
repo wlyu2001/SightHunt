@@ -1,13 +1,12 @@
-package com.sighthunt.sight;
+package com.sighthunt.servlet.user;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public class ListSightsServlet extends HttpServlet {
-
+public class EditUserServlet extends HttpServlet {
     @Override
-    public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     }
 }

@@ -91,7 +91,7 @@ public class WelcomeFragment extends Fragment {
 				Request.newMeRequest(Session.getActiveSession(), new Request.GraphUserCallback() {
 					@Override
 					public void onCompleted(GraphUser user, Response response) {
-						mLoginActivity.loginWithFacebook(user.getId());
+						mLoginActivity.login(user.getId(), "");
 					}
 				}).executeAsync();
 			}

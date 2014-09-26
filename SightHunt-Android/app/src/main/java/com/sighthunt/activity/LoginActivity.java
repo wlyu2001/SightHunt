@@ -11,6 +11,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.sighthunt.R;
 import com.sighthunt.auth.AccountAuthenticatorActivity;
@@ -20,7 +21,12 @@ import com.sighthunt.fragment.login.LoginFragment;
 import com.sighthunt.fragment.login.SignUpFragment;
 import com.sighthunt.fragment.login.WelcomeFragment;
 import com.sighthunt.network.SightHuntService;
+import com.sighthunt.network.model.User;
 import com.sighthunt.util.AccountUtils;
+
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 public class LoginActivity extends AccountAuthenticatorActivity {
 
@@ -73,46 +79,26 @@ public class LoginActivity extends AccountAuthenticatorActivity {
 		mNewAccount = args.getBoolean(ARG_NEW_ACCOUNT, false);
 	}
 
-	// when logout, also log out facebook..
-	public void loginWithFacebook(final String username) {
+	public void login(final String username, final String password) {
 
-		new AsyncTask<Void, Void, Intent>() {
+		mServerAuthenticate.loginAsync(username, password, AccountUtils.AUTH_TOKEN_TYPE, new Callback<User>() {
 			@Override
-			protected Intent doInBackground(Void... params) {
-				String authToken = mServerAuthenticate.loginWithFacebook(username, AccountUtils.AUTH_TOKEN_TYPE);
-				final Intent resultIntent = new Intent();
-				resultIntent.putExtra(AccountManager.KEY_ACCOUNT_NAME, username);
-				resultIntent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, AccountUtils.ACCOUNT_TYPE);
-				resultIntent.putExtra(AccountManager.KEY_AUTHTOKEN, authToken);
-				return resultIntent;
-			}
+			public void success(User user, Response response) {
+				final Intent intent = new Intent();
+				intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, username);
+				intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, AccountUtils.ACCOUNT_TYPE);
+				intent.putExtra(AccountManager.KEY_AUTHTOKEN, user.token);
+				intent.putExtra(ARG_PASSWORD, password);
 
-			@Override
-			protected void onPostExecute(Intent intent) {
+				Toast.makeText(LoginActivity.this, "Token " + user.token, Toast.LENGTH_LONG).show();
 				finishLogin(intent);
 			}
-		}.execute();
-
-	}
-
-	public void loginWithCredentials(final String username, final String password) {
-		new AsyncTask<Void, Void, Intent>() {
-			@Override
-			protected Intent doInBackground(Void... params) {
-				String authToken = mServerAuthenticate.loginWithCredentials(username, password, AccountUtils.AUTH_TOKEN_TYPE);
-				final Intent resultIntent = new Intent();
-				resultIntent.putExtra(AccountManager.KEY_ACCOUNT_NAME, username);
-				resultIntent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, AccountUtils.ACCOUNT_TYPE);
-				resultIntent.putExtra(AccountManager.KEY_AUTHTOKEN, authToken);
-				resultIntent.putExtra(ARG_PASSWORD, password);
-				return resultIntent;
-			}
 
 			@Override
-			protected void onPostExecute(Intent intent) {
-				finishLogin(intent);
+			public void failure(RetrofitError error) {
+				Toast.makeText(LoginActivity.this, "Login failed", Toast.LENGTH_LONG).show();
 			}
-		}.execute();
+		});
 	}
 
 	private void finishLogin(Intent intent) {

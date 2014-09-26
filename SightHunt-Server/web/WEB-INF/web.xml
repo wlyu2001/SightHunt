@@ -6,37 +6,42 @@
 
     <servlet>
         <servlet-name>new-sight</servlet-name>
-        <servlet-class>com.sighthunt.sight.NewSightServlet</servlet-class>
+        <servlet-class>com.sighthunt.servlet.sight.NewSightServlet</servlet-class>
     </servlet>
 
     <servlet>
         <servlet-name>edit-sight</servlet-name>
-        <servlet-class>com.sighthunt.sight.EditSightServlet</servlet-class>
+        <servlet-class>com.sighthunt.servlet.sight.EditSightServlet</servlet-class>
     </servlet>
 
     <servlet>
         <servlet-name>list-sights</servlet-name>
-        <servlet-class>com.sighthunt.sight.ListSightsServlet</servlet-class>
+        <servlet-class>com.sighthunt.servlet.sight.ListSightsServlet</servlet-class>
     </servlet>
 
     <servlet>
         <servlet-name>fetch-sight</servlet-name>
-        <servlet-class>com.sighthunt.sight.FetchSightServlet</servlet-class>
+        <servlet-class>com.sighthunt.servlet.sight.FetchSightServlet</servlet-class>
     </servlet>
 
     <servlet>
         <servlet-name>edit-user</servlet-name>
-        <servlet-class>com.sighthunt.user.EditUserServlet</servlet-class>
+        <servlet-class>com.sighthunt.servlet.user.EditUserServlet</servlet-class>
     </servlet>
 
     <servlet>
-        <servlet-name>new-user</servlet-name>
-        <servlet-class>com.sighthunt.user.SignUpServlet</servlet-class>
+        <servlet-name>signup</servlet-name>
+        <servlet-class>com.sighthunt.servlet.user.SignUpServlet</servlet-class>
     </servlet>
 
     <servlet>
         <servlet-name>fetch-user</servlet-name>
-        <servlet-class>com.sighthunt.user.FetchUserServlet</servlet-class>
+        <servlet-class>com.sighthunt.servlet.user.FetchUserServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>login</servlet-name>
+        <servlet-class>com.sighthunt.servlet.user.LoginServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
@@ -60,13 +65,18 @@
     </servlet-mapping>
 
     <servlet-mapping>
+        <servlet-name>login</servlet-name>
+        <url-pattern>/user/login</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
         <servlet-name>fetch-user</servlet-name>
         <url-pattern>/user/fetch</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
-        <servlet-name>new-user</servlet-name>
-        <url-pattern>/user/new</url-pattern>
+        <servlet-name>signup</servlet-name>
+        <url-pattern>/user/signup</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

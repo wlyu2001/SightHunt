@@ -55,8 +55,15 @@ public class ApiManager implements Injectable {
 		@GET("/user/fetch")
 		void getUser(@Query("username") String username, Callback<User> callback);
 
-		@POST("/user/new")
-		void createUser(@Body User user, Callback<User> callback);
+		@GET("/user/login")
+		User loginSync(@Query("username") String username, @Query("password") String password);
+
+
+		@GET("/user/login")
+		void loginAsync(@Query("username") String username, @Query("password") String password, Callback<User> callback);
+
+		@POST("/user/signup")
+		void signupUser(@Body User user, Callback<User> callback);
 
 		@POST("/user/edit")
 		void editUser(@Body User user, Callback<User> callback);
@@ -81,7 +88,7 @@ public class ApiManager implements Injectable {
 
 				// We need to use token for auth, since user might change password, then token is invalidated and user needs to log in again
 				// For creating user, the endpoint can ignore Authorization
-				Assert.assertFalse(TextUtils.isEmpty(mToken));
+				//Assert.assertFalse(TextUtils.isEmpty(mToken));
 				request.addHeader("Authorization", mToken);
 			}
 		}).build();

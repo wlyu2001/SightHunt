@@ -12,6 +12,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.sighthunt.activity.LoginActivity;
+import com.sighthunt.network.model.User;
 
 public class Authenticator extends AbstractAccountAuthenticator {
 
@@ -58,7 +59,8 @@ public class Authenticator extends AbstractAccountAuthenticator {
 		if (TextUtils.isEmpty(authToken)) {
 			final String password = am.getPassword(account);
 			if (password != null) {
-				authToken = mServerAuthenticate.loginWithCredentials(account.name, password, authTokenType);
+				User user = mServerAuthenticate.loginSync(account.name, password, authTokenType);
+				authToken = user.token;
 			}
 		}
 

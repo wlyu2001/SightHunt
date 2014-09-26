@@ -1,12 +1,12 @@
-package com.sighthunt.sight;
+package com.sighthunt.servlet.sight;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public class EditSightServlet extends HttpServlet {
+public class NewSightServlet extends HttpServlet {
     @Override
-    public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    public void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     }
 }

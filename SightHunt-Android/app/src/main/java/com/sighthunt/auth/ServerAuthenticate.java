@@ -1,16 +1,20 @@
 package com.sighthunt.auth;
 
+import com.sighthunt.inject.Injector;
+import com.sighthunt.network.ApiManager;
+import com.sighthunt.network.model.User;
+
+import retrofit.Callback;
+
 public class ServerAuthenticate {
 
-	public String loginWithCredentials(String username, String password, String authTokenType) {
-		//return "";
-		return "1234567";
+	private ApiManager mApiManager = Injector.get(ApiManager.class);
+
+	public void loginAsync(String username, String password, String authTokenType, Callback<User> callback) {
+		mApiManager.getUserService().loginAsync(username, password, callback);
 	}
 
-	public String loginWithFacebook(String username, String authTokenType) {
-
-
-
-		return "1234567";
+	public User loginSync(String username, String password, String authTokenType) {
+		return mApiManager.getUserService().loginSync(username, password);
 	}
 }
