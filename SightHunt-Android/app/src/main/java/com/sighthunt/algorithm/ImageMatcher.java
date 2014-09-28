@@ -45,9 +45,9 @@ public class ImageMatcher {
 
 
 	public ImageMatcher() {
-		mFeatureDetector = FeatureDetector.create(FeatureDetector.ORB);
-		mDescriptorExtractor = DescriptorExtractor.create(DescriptorExtractor.ORB);
-		mMatcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
+		mFeatureDetector = FeatureDetector.create(FeatureDetector.SURF);
+		mDescriptorExtractor = DescriptorExtractor.create(DescriptorExtractor.SURF);
+		mMatcher = DescriptorMatcher.create(DescriptorMatcher.FLANNBASED);
 	}
 
 	public float getImageMatchingScore(File file1, File file2) {
@@ -70,7 +70,7 @@ public class ImageMatcher {
 		DMatch[] matchesArray = matches.toArray();
 
 		mMatches = new ArrayList<DMatch>();
-		double dist_threshold = 20;
+		double dist_threshold = 0.1;
 		for (int i = 0; i < descriptor1.rows(); i++) {
 			if (matchesArray[i].distance <= dist_threshold) {
 				mMatches.add(matchesArray[i]);

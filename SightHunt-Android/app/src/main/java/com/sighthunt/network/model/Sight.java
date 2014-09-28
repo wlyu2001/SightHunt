@@ -8,6 +8,10 @@ public class Sight {
 	public String description;
 	public int hunts;
 	public int votes;
-	public int region;
+	public String region;
 	public String image_uri;
+	public String creator;
+	public float lon;
+	public float lat;
+	public long time_created;
 }

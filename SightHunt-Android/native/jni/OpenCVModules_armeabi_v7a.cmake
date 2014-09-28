@@ -16,7 +16,7 @@ set(CMAKE_IMPORT_FILE_VERSION 1)
 set(_targetsDefined)
 set(_targetsNotDefined)
 set(_expectedTargets)
-foreach(_expectedTarget libtiff libjpeg libjasper libpng IlmImf tbb opencv_core opencv_androidcamera opencv_flann opencv_imgproc opencv_highgui opencv_features2d opencv_calib3d opencv_ml opencv_objdetect opencv_video opencv_contrib opencv_photo opencv_java opencv_legacy opencv_ocl opencv_stitching opencv_superres opencv_ts opencv_videostab)
+foreach(_expectedTarget libtiff libjpeg libjasper libpng IlmImf tbb opencv_core opencv_androidcamera opencv_flann opencv_imgproc opencv_highgui opencv_features2d opencv_calib3d opencv_ml opencv_nonfree opencv_objdetect opencv_video opencv_contrib opencv_photo opencv_java opencv_legacy opencv_ocl opencv_stitching opencv_superres opencv_ts opencv_videostab)
   list(APPEND _expectedTargets ${_expectedTarget})
   if(NOT TARGET ${_expectedTarget})
     list(APPEND _targetsNotDefined ${_expectedTarget})
@@ -85,6 +85,9 @@ add_library(opencv_calib3d STATIC IMPORTED)
 
 # Create imported target opencv_ml
 add_library(opencv_ml STATIC IMPORTED)
+
+# Create imported target opencv_nonfree
+add_library(opencv_nonfree STATIC IMPORTED)
 
 # Create imported target opencv_objdetect
 add_library(opencv_objdetect STATIC IMPORTED)

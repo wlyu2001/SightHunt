@@ -5,21 +5,26 @@ import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.facebook.Session;
+import com.sighthunt.inject.Injectable;
 
-public class AccountUtils {
+public class AccountUtils implements Injectable {
 
 	public static final String ACCOUNT_TYPE = "com.sighthunt";
 	public static final String AUTH_TOKEN_TYPE = "default";
 
-	public void clearAccount(final ClearAccountCallback callback) {
+	private Context mContext;
+
+	public void logoutAndClearAccounts(final ClearAccountCallback callback) {
 
 		Session session = Session.getActiveSession();
 
 		if (session == null) {
-			session = Session.openActiveSessionFromCache(mActivity);
+			session = Session.openActiveSessionFromCache(mContext);
 		}
 
 		if (session != null && session.isOpened()) {
@@ -48,53 +53,79 @@ public class AccountUtils {
 		public void onClearAccount();
 	}
 
-	Activity mActivity;
-	AccountManager mAccountManager;
+	private AccountManager mAccountManager;
+	private String mUsername;
+	private String mToken;
+	private Activity mActivity;
+	private TokenRequestCallback mTokenRequestCallback;
 
-	public AccountUtils(Activity activity) {
-		mActivity = activity;
-		mAccountManager = AccountManager.get(activity);
+	public AccountUtils(Context context) {
+		mContext = context;
+		mAccountManager = AccountManager.get(context);
 	}
 
-	public boolean getToken(final TokenRequestCallback callback) {
+	public boolean getToken(Activity activity, TokenRequestCallback callback) {
+		mActivity = activity;
+		mTokenRequestCallback = callback;
+
 		Account[] accounts = mAccountManager.getAccountsByType(ACCOUNT_TYPE);
 		if (accounts.length == 0) {
-			addAccount(callback);
+			addAccount(activity);
 			return false;
 		} else {
-			getTokenForAccount(accounts[0], callback);
+			mUsername = accounts[0].name;
+			getTokenForAccount(activity, accounts[0]);
 			return true;
 		}
 	}
 
-	public void getTokenForAccount(Account account, final TokenRequestCallback callback) {
-		mAccountManager.getAuthToken(account, AUTH_TOKEN_TYPE, null, mActivity, new AccountManagerCallback<Bundle>() {
+	public String getUsername() {
+		return mUsername;
+	}
+
+	public String getToken() {
+		return mToken;
+	}
+
+	public void getTokenForAccount(Activity activity, Account account) {
+
+		mAccountManager.getAuthToken(account, AUTH_TOKEN_TYPE, null, activity, new AccountManagerCallback<Bundle>() {
 			@Override
 			public void run(AccountManagerFuture<Bundle> future) {
 				try {
 					Bundle result = future.getResult();
-					String token = result.getString(AccountManager.KEY_AUTHTOKEN);
-					callback.onTokenRequestCompleted(token);
+					mToken = result.getString(AccountManager.KEY_AUTHTOKEN);
+					Log.i("Token fetched", mToken);
+					if (mTokenRequestCallback != null) {
+						mTokenRequestCallback.onTokenRequestCompleted(mToken);
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
-					callback.onTokenRequestFailed();
+					if (mTokenRequestCallback != null) {
+						mTokenRequestCallback.onTokenRequestFailed();
+					}
 				}
 			}
 		}, null);
 	}
 
-	public void addAccount(final TokenRequestCallback callback) {
-		AccountManagerFuture<Bundle> future = mAccountManager.addAccount(ACCOUNT_TYPE, AUTH_TOKEN_TYPE, null, null, mActivity, new AccountManagerCallback<Bundle>() {
+	public void addAccount(final Activity activity) {
+		AccountManagerFuture<Bundle> future = mAccountManager.addAccount(ACCOUNT_TYPE, AUTH_TOKEN_TYPE, null, null, activity, new AccountManagerCallback<Bundle>() {
 			@Override
 			public void run(AccountManagerFuture<Bundle> future) {
 				try {
 					Bundle result = future.getResult();
 					String name = result.getString(AccountManager.KEY_ACCOUNT_NAME);
-					getTokenForAccount(new Account(name, ACCOUNT_TYPE), callback);
+					getTokenForAccount(activity, new Account(name, ACCOUNT_TYPE));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		}, null);
+	}
+
+	public void invalidateToken() {
+		mAccountManager.invalidateAuthToken(ACCOUNT_TYPE, mToken);
+		getToken(mActivity, mTokenRequestCallback);
 	}
 }

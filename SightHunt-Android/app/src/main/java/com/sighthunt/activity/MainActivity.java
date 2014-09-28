@@ -1,5 +1,6 @@
 package com.sighthunt.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -11,6 +12,7 @@ import com.sighthunt.R;
 import com.sighthunt.fragment.BaseFragment;
 import com.sighthunt.fragment.BrowseFragment;
 import com.sighthunt.fragment.ResultsFragment;
+import com.sighthunt.inject.Injector;
 import com.sighthunt.location.LocationHelper;
 import com.sighthunt.util.AccountUtils;
 
@@ -26,7 +28,7 @@ public class MainActivity extends FragmentActivity {
 	BaseFragment mListFragment;
 
 	LocationHelper mLocationHelper;
-	AccountUtils mAccountUtils;
+	AccountUtils mAccountUtils = Injector.get(AccountUtils.class);
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -62,13 +64,18 @@ public class MainActivity extends FragmentActivity {
 			}
 		});
 
-		mAccountUtils = new AccountUtils(this);
 		requestToken();
+
+		mButtonCam.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				startActivity(new Intent(MainActivity.this, ReleaseActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+			}
+		});
 	}
 
 	private void requestToken() {
-		Log.i("account","request token");
-		boolean inProcess = mAccountUtils.getToken(new AccountUtils.TokenRequestCallback() {
+		boolean inProcess = mAccountUtils.getToken(this, new AccountUtils.TokenRequestCallback() {
 			@Override
 			public void onTokenRequestCompleted(String token) {
 			}
@@ -108,7 +115,7 @@ public class MainActivity extends FragmentActivity {
 		if (id == R.id.action_settings) {
 			return true;
 		} else if (id == R.id.action_logout) {
-			mAccountUtils.clearAccount(new AccountUtils.ClearAccountCallback() {
+			mAccountUtils.logoutAndClearAccounts(new AccountUtils.ClearAccountCallback() {
 				@Override
 				public void onClearAccount() {
 					requestToken();

@@ -1,7 +1,14 @@
 package com.sighthunt.servlet.user;
 
-import com.google.gson.Gson;
-import com.sighthunt.model.User;
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
+import com.sighthunt.data.Metadata;
+import com.sighthunt.network.model.User;
+import com.sighthunt.util.DBHelper;
+import com.sighthunt.util.EncryptUtils;
+import com.sighthunt.util.JsonResponseWriter;
+import com.sighthunt.util.TextUtils;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -14,13 +21,27 @@ public class LoginServlet extends HttpServlet {
         String username = req.getParameter("username");
         String password = req.getParameter("password");
 
-        String token = username + ": " + password;
 
-        User user = new User();
-        user.token = token;
-        String json = new Gson().toJson(user);
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-        resp.getWriter().write(json);
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        Entity result = DBHelper.getUserByUsername(username, datastore);
+        if (result != null) {
+            if (TextUtils.isEmpty(password) || password.equals(result.getProperty(Metadata.User.PASSWORD))) {
+                User user = new User();
+                user.username = username;
+                // token should be fetched from datastore
+                user.token = EncryptUtils.getInstance().getToken(username);
+                JsonResponseWriter.write(resp, user);
+            }
+        } else {
+            // new facebook user
+            if (TextUtils.isEmpty(password)) {
+                User user = new User();
+                user.username = username;
+                user.token = EncryptUtils.getInstance().generateAndStoreToken(username);
+                Entity userEntity = DBHelper.createNewUserEntity(user);
+                datastore.put(userEntity);
+                JsonResponseWriter.write(resp, user);
+            }
+        }
     }
 }

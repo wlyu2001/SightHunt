@@ -2,16 +2,19 @@ package com.sighthunt.data.model;
 
 import android.database.Cursor;
 
-import com.sighthunt.data.SightHuntContract;
+import com.sighthunt.data.Contract;
 
 public class Sight {
 	public static final String[] PROJECTION = {
-			SightHuntContract.Sight.KEY,
-			SightHuntContract.Sight.TITLE,
-			SightHuntContract.Sight.DESCRIPTION,
-			SightHuntContract.Sight.IMAGE_URI,
-			SightHuntContract.Sight.CREATOR,
-			SightHuntContract.Sight.REGION,
+			Contract.Sight.KEY,
+			Contract.Sight.TITLE,
+			Contract.Sight.DESCRIPTION,
+			Contract.Sight.IMAGE_URI,
+			Contract.Sight.CREATOR,
+			Contract.Sight.REGION,
+			Contract.Sight.TIME_CREATED,
+			Contract.Sight.LON,
+			Contract.Sight.LAT,
 	};
 
 	public static final int SIGHT_KEY = 0;
@@ -20,6 +23,8 @@ public class Sight {
 	public static final int SIGHT_IMAGE_URI = 3;
 	public static final int SIGHT_CREATOR = 4;
 	public static final int SIGHT_REGION = 5;
+	public static final int SIGHT_LON = 6;
+	public static final int SIGHT_LAT = 7;
 
 	public String key;
 	public String title;
@@ -27,6 +32,8 @@ public class Sight {
 	public String imageUri;
 	public String creator;
 	public String region;
+	public float lon;
+	public float lat;
 
 
 	public void bindCursor(Cursor cursor) {
@@ -36,5 +43,7 @@ public class Sight {
 		imageUri = cursor.getString(SIGHT_IMAGE_URI);
 		creator = cursor.getString(SIGHT_CREATOR);
 		region = cursor.getString(SIGHT_REGION);
+		lon = cursor.getFloat(SIGHT_LON);
+		lat = cursor.getFloat(SIGHT_LAT);
 	}
 }

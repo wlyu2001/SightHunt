@@ -10,14 +10,18 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.sighthunt.activity.LoginActivity;
+import com.sighthunt.inject.Injector;
+import com.sighthunt.network.ApiManager;
 import com.sighthunt.network.model.User;
 
 public class Authenticator extends AbstractAccountAuthenticator {
 
 	Context mContext;
 	ServerAuthenticate mServerAuthenticate;
+	ApiManager mApiManager = Injector.get(ApiManager.class);
 
 	public Authenticator(Context context) {
 		super(context);
@@ -33,7 +37,6 @@ public class Authenticator extends AbstractAccountAuthenticator {
 	@Override
 	public Bundle addAccount(AccountAuthenticatorResponse response, String accountType, String authTokenType, String[] requiredFeatures, Bundle options) throws NetworkErrorException {
 		final Intent intent = new Intent(mContext, LoginActivity.class);
-		intent.putExtra(LoginActivity.ARG_NEW_ACCOUNT, true);
 		intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
 		final Bundle bundle = new Bundle();
 		bundle.putParcelable(AccountManager.KEY_INTENT, intent);
@@ -60,7 +63,9 @@ public class Authenticator extends AbstractAccountAuthenticator {
 			final String password = am.getPassword(account);
 			if (password != null) {
 				User user = mServerAuthenticate.loginSync(account.name, password, authTokenType);
-				authToken = user.token;
+				if (user != null) {
+					authToken = user.token;
+				}
 			}
 		}
 
@@ -70,6 +75,8 @@ public class Authenticator extends AbstractAccountAuthenticator {
 			result.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
 			result.putString(AccountManager.KEY_ACCOUNT_TYPE, account.type);
 			result.putString(AccountManager.KEY_AUTHTOKEN, authToken);
+
+			Log.i("AuthToken", authToken);
 			return result;
 		}
 

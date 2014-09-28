@@ -1,20 +1,23 @@
 package com.sighthunt.network;
 
 import android.content.Context;
-import android.text.TextUtils;
+import android.util.Log;
 
 import com.sighthunt.R;
 import com.sighthunt.inject.Injectable;
+import com.sighthunt.inject.Injector;
 import com.sighthunt.network.model.Sight;
 import com.sighthunt.network.model.User;
-
-import junit.framework.Assert;
+import com.sighthunt.util.AccountUtils;
 
 import java.util.List;
 
 import retrofit.Callback;
+import retrofit.ErrorHandler;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 import retrofit.http.Body;
 import retrofit.http.GET;
 import retrofit.http.Multipart;
@@ -39,7 +42,7 @@ public class ApiManager implements Injectable {
 
 		@Multipart
 		@PUT("/sight/new")
-		void createSight(@Body Sight sight, @Part("photo") TypedFile photo, Callback<String> callback);
+		void createSight(@Part("sight") Sight sight, @Part("photo") TypedFile photo, Callback<Sight> callback);
 
 		@POST("/sight/edit")
 		void editSight(@Body Sight sight, Callback<String> callback);
@@ -74,9 +77,10 @@ public class ApiManager implements Injectable {
 
 	private SightInterface mSightService;
 	private UserInterface mUserService;
-	private String mToken;
+	private AccountUtils mAccountUtils;
 
-	public ApiManager(final Context context) {
+	public ApiManager(final Context context, AccountUtils accountUtils) {
+		mAccountUtils = accountUtils;
 		final String key = context.getString(R.string.api_key);
 
 		RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(API_URL).setLogLevel(RestAdapter.LogLevel.FULL).setRequestInterceptor(new RequestInterceptor() {
@@ -89,17 +93,23 @@ public class ApiManager implements Injectable {
 				// We need to use token for auth, since user might change password, then token is invalidated and user needs to log in again
 				// For creating user, the endpoint can ignore Authorization
 				//Assert.assertFalse(TextUtils.isEmpty(mToken));
-				request.addHeader("Authorization", mToken);
+				request.addHeader("Username", mAccountUtils.getUsername());
+				request.addHeader("Authorization", mAccountUtils.getToken());
+			}
+		}).setErrorHandler(new ErrorHandler() {
+			@Override
+			public Throwable handleError(RetrofitError cause) {
+				Response r = cause.getResponse();
+				if (r != null && r.getStatus() == 401) {
+					mAccountUtils.invalidateToken();
+				}
+				return cause;
 			}
 		}).build();
 
 
 		mSightService = restAdapter.create(SightInterface.class);
 		mUserService = restAdapter.create(UserInterface.class);
-	}
-
-	public void setToken(String token) {
-		mToken = token;
 	}
 
 	public SightInterface getSightService() {

@@ -120,7 +120,7 @@ SET(OpenCV_VERSION_TWEAK  0)
 # Link libraries: e.g. opencv_core;opencv_imgproc; etc...
 # ====================================================================
 
-SET(OpenCV_LIB_COMPONENTS opencv_core;opencv_androidcamera;opencv_flann;opencv_imgproc;opencv_highgui;opencv_features2d;opencv_calib3d;opencv_photo;opencv_video;opencv_videostab;opencv_ts;opencv_ml;opencv_objdetect;opencv_ocl;opencv_superres;opencv_stitching;opencv_legacy;opencv_contrib;opencv_java)
+SET(OpenCV_LIB_COMPONENTS opencv_core;opencv_androidcamera;opencv_flann;opencv_imgproc;opencv_highgui;opencv_features2d;opencv_calib3d;opencv_photo;opencv_video;opencv_videostab;opencv_ts;opencv_ml;opencv_nonfree;opencv_objdetect;opencv_ocl;opencv_superres;opencv_stitching;opencv_legacy;opencv_contrib;opencv_java)
 
 # ==============================================================
 #  Extra include directories, needed by OpenCV 2 new structure
@@ -158,13 +158,6 @@ endif()
 # ==============================================================
 #  Form list of modules (components) to find
 # ==============================================================
-if(NOT OpenCV_FIND_COMPONENTS)
-  set(OpenCV_FIND_COMPONENTS ${OpenCV_LIB_COMPONENTS})
-  list(REMOVE_ITEM OpenCV_FIND_COMPONENTS opencv_java)
-  if(GTest_FOUND OR GTEST_FOUND)
-    list(REMOVE_ITEM OpenCV_FIND_COMPONENTS opencv_ts)
-  endif()
-endif()
 
 # expand short module names and see if requested components exist
 set(OpenCV_FIND_COMPONENTS_ "")
