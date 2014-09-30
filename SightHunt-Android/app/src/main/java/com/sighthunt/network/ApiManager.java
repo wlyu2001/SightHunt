@@ -1,15 +1,14 @@
 package com.sighthunt.network;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.sighthunt.R;
 import com.sighthunt.inject.Injectable;
-import com.sighthunt.inject.Injector;
 import com.sighthunt.network.model.Sight;
 import com.sighthunt.network.model.User;
 import com.sighthunt.util.AccountUtils;
 
+import java.io.File;
 import java.util.List;
 
 import retrofit.Callback;
@@ -22,11 +21,11 @@ import retrofit.http.Body;
 import retrofit.http.GET;
 import retrofit.http.Multipart;
 import retrofit.http.POST;
-import retrofit.http.PUT;
 import retrofit.http.Part;
 import retrofit.http.Path;
 import retrofit.http.Query;
 import retrofit.mime.TypedFile;
+import retrofit.mime.TypedString;
 
 public class ApiManager implements Injectable {
 
@@ -35,14 +34,13 @@ public class ApiManager implements Injectable {
 
 		// type can be new, most_voted, most_hunted
 		@GET("/sight/list/{region}")
-		void getSightsByRegion(@Path("region") String region, @Query("type") String type, Callback<List<Sight>> callback);
+		void getSightsByRegion(@Path("region") String region, @Query("last_modified") long lastModified, @Query("type") String type, Callback<List<Sight>> callback);
 
 		@GET("/sight/fetch")
 		void getSight(@Query("id") String id, Callback<Sight> callback);
 
-		@Multipart
-		@PUT("/sight/new")
-		void createSight(@Part("sight") Sight sight, @Part("photo") TypedFile photo, Callback<Sight> callback);
+		@POST("/sight/new")
+		void createSight(@Body Sight sight, Callback<Sight> callback);
 
 		@POST("/sight/edit")
 		void editSight(@Body Sight sight, Callback<String> callback);
@@ -51,6 +49,12 @@ public class ApiManager implements Injectable {
 		@GET("/sight/list/{user}")
 		void getSightsByUser(@Path("user") String id, @Query("type") String type, Callback<List<Sight>> callback);
 
+	}
+
+	public interface ImageInterface {
+		@Multipart
+		@POST("/")
+		void uploadImage(@Part("sight_key") TypedString key, @Part("image") TypedFile photo, @Part("thumb") TypedFile thumb, Callback<Sight> callback);
 	}
 
 	public interface UserInterface {
@@ -79,37 +83,71 @@ public class ApiManager implements Injectable {
 	private UserInterface mUserService;
 	private AccountUtils mAccountUtils;
 
+	private RequestInterceptor mIntercetper = new RequestInterceptor() {
+		@Override
+		public void intercept(RequestInterceptor.RequestFacade request) {
+
+			// The request is validated by package name and signing key, so no other app should be able to send request
+			request.addQueryParam("key", mKey);
+
+			// We need to use token for auth, since user might change password, then token is invalidated and user needs to log in again
+			// For creating user, the endpoint can ignore Authorization
+			//Assert.assertFalse(TextUtils.isEmpty(mToken));
+			request.addHeader("Username", mAccountUtils.getUsername());
+			request.addHeader("Authorization", mAccountUtils.getToken());
+			request.addHeader("User-Agent", "gzip");
+			request.addHeader("Accept-Encoding", "gzip");
+		}
+	};
+
+	private RequestInterceptor mIntercetper1 = new RequestInterceptor() {
+		@Override
+		public void intercept(RequestInterceptor.RequestFacade request) {
+
+			request.addHeader("Username", mAccountUtils.getUsername());
+			request.addHeader("Authorization", mAccountUtils.getToken());
+			request.addHeader("User-Agent", "gzip");
+			request.addHeader("Accept-Encoding", "gzip");
+		}
+	};
+
+	private final String mKey;
+
 	public ApiManager(final Context context, AccountUtils accountUtils) {
 		mAccountUtils = accountUtils;
-		final String key = context.getString(R.string.api_key);
+		mKey = context.getString(R.string.api_key);
 
-		RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(API_URL).setLogLevel(RestAdapter.LogLevel.FULL).setRequestInterceptor(new RequestInterceptor() {
-			@Override
-			public void intercept(RequestInterceptor.RequestFacade request) {
-
-				// The request is validated by package name and signing key, so no other app should be able to send request
-				request.addQueryParam("key", key);
-
-				// We need to use token for auth, since user might change password, then token is invalidated and user needs to log in again
-				// For creating user, the endpoint can ignore Authorization
-				//Assert.assertFalse(TextUtils.isEmpty(mToken));
-				request.addHeader("Username", mAccountUtils.getUsername());
-				request.addHeader("Authorization", mAccountUtils.getToken());
-			}
-		}).setErrorHandler(new ErrorHandler() {
-			@Override
-			public Throwable handleError(RetrofitError cause) {
-				Response r = cause.getResponse();
-				if (r != null && r.getStatus() == 401) {
-					mAccountUtils.invalidateToken();
-				}
-				return cause;
-			}
-		}).build();
-
+		RestAdapter restAdapter = new RestAdapter.Builder()
+				.setEndpoint(API_URL)
+				.setLogLevel(RestAdapter.LogLevel.FULL)
+				.setRequestInterceptor(mIntercetper)
+				.setErrorHandler(new ErrorHandler() {
+					@Override
+					public Throwable handleError(RetrofitError cause) {
+						Response r = cause.getResponse();
+						if (r != null && r.getStatus() == 401) {
+							mAccountUtils.invalidateToken();
+						}
+						return cause;
+					}
+				}).build();
 
 		mSightService = restAdapter.create(SightInterface.class);
 		mUserService = restAdapter.create(UserInterface.class);
+	}
+
+	public void uploadImage(String url, String key, String image, String thumb, final Callback<Sight> callback) {
+
+		final TypedFile imageFile = new TypedFile("image/jpeg", new File(image));
+		final TypedFile thumbFile = new TypedFile("image/jpeg", new File(thumb));
+		TypedString typedString = new TypedString(key);
+
+		RestAdapter imageAdapter = new RestAdapter.Builder()
+		.setEndpoint(url)
+		.setRequestInterceptor(mIntercetper1)
+		.setLogLevel(RestAdapter.LogLevel.FULL)
+		.build();
+		imageAdapter.create(ImageInterface.class).uploadImage(typedString, imageFile, thumbFile, callback);
 	}
 
 	public SightInterface getSightService() {

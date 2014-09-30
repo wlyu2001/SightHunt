@@ -28,9 +28,11 @@ public class HuntCamFragment extends Fragment {
 		}
 		String s = "tmp.png";
 		String s1 = "tmp1.png";
+		String s2 = "tmp_thumb.png";
 
 		final File file = new File(folder, s);
 		final File file1 = new File(folder, s1);
+		final File file2 = new File(folder, s2);
 		ImageView imageView = (ImageView) view.findViewById(R.id.image_view);
 		imageView.setAlpha(0.5f);
 		// skip cache for testing.. of course we want to cache images
@@ -39,7 +41,7 @@ public class HuntCamFragment extends Fragment {
 		button.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				CapturePreview.takeAPicture(file1, new CapturePreview.CapturePreviewObserver() {
+				CapturePreview.takeAPicture(file1, file2, new CapturePreview.CapturePreviewObserver() {
 					@Override
 					public void pictureCaptured(boolean success) {
 						if (success) {

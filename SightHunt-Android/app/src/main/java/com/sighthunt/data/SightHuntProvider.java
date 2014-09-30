@@ -5,14 +5,19 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
+import com.sighthunt.inject.Injector;
 import com.sighthunt.network.SightHuntService;
 import com.sighthunt.network.model.SightSortType;
+import com.sighthunt.util.AccountUtils;
 
 import java.util.List;
 
 public class SightHuntProvider extends ContentProvider {
+
+	AccountUtils mAccountUtils = Injector.get(AccountUtils.class);
 
 	public static enum ContentType {
 		SIGHT,
@@ -43,13 +48,18 @@ public class SightHuntProvider extends ContentProvider {
 		sUriMatcher.addURI(Contract.AUTHORITY, "new_sight/client", ContentType.NEW_SIGHT_CLIENT.ordinal());
 	}
 
+	SQLiteDatabase mDb;
+
 	@Override
 	public boolean onCreate() {
+		SightHuntDatabase db = new SightHuntDatabase(getContext());
+
+		mDb = db.getReadableDatabase();
 		return false;
 	}
 
 	@Override
-	public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor query(Uri uri, String[] projection, String sel, String[] args, String order) {
 
 		Intent dataRefreshIntent = null;
 
@@ -77,11 +87,34 @@ public class SightHuntProvider extends ContentProvider {
 			getContext().startService(dataRefreshIntent);
 		}
 
+		String sortOrder = "";
+		String selection = Contract.Sight.CREATOR + " <> ?";
+		String[] selectionArgs = new String[]{mAccountUtils.getUsername()};
+
+		switch (getContentType(uri)) {
+			case SIGHT: {
+
+			}
+			case SIGHTS_MOST_HUNTED: {
+				sortOrder = Contract.Sight.VOTES + " DESC";
+				break;
+			}
+			case SIGHTS_MOST_VOTED: {
+				sortOrder = Contract.Sight.HUNTS + " DESC";
+				break;
+			}
+			case SIGHTS_NEW: {
+				sortOrder = Contract.Sight.TIME_CREATED + " DESC";
+				break;
+			}
+			default: {
+			}
+		}
 
 
-		// query sqlite
+		//return mDb.query(Contract.Sight.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+		return mDb.query(Contract.Sight.TABLE_NAME, projection, null, null, null, null, sortOrder);
 
-		return null;
 	}
 
 	public String getRegion(Uri uri) {
@@ -103,16 +136,20 @@ public class SightHuntProvider extends ContentProvider {
 	public Uri insert(Uri uri, ContentValues values) {
 		switch (getContentType(uri)) {
 			case NEW_SIGHT_CLIENT: {
+				// insert initialized from the client to the server
 				String title = values.getAsString(Contract.Sight.TITLE);
 				String description = values.getAsString(Contract.Sight.DESCRIPTION);
-				String image = values.getAsString(Contract.Sight.IMAGE_URI);
+				String image = values.getAsString(Contract.Sight.IMAGE_KEY);
+				String thumb = values.getAsString(Contract.Sight.THUMB_KEY);
 				String region = values.getAsString(Contract.Sight.REGION);
 				float lon = values.getAsFloat(Contract.Sight.LON);
 				float lat = values.getAsFloat(Contract.Sight.LAT);
 
-				getContext().startService(SightHuntService.getInsertSightIntent(getContext(), region, title, description, image, lon, lat));
-			} case NEW_SIGHT_SERVER: {
-			// write sqlite
+				getContext().startService(SightHuntService.getInsertSightIntent(getContext(), region, title, description, image, thumb, lon, lat));
+			}
+			case NEW_SIGHT_SERVER: {
+				//insert initiated from the server to the client
+				mDb.insertWithOnConflict(Contract.Sight.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
 			}
 		}
 

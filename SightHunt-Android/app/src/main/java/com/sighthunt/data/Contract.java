@@ -11,17 +11,23 @@ public final class Contract {
 
 	public static final class Sight implements BaseColumns {
 
+		public static final String TABLE_NAME = "sight";
+
 		public static final String KEY = "key";
 
 		public static final String TITLE = "title";
 
-		public static final String IMAGE_URI = "image_uri";
+		public static final String IMAGE_KEY = "image_key";
+
+		public static final String THUMB_KEY = "thumb_key";
 
 		public static final String DESCRIPTION = "description";
 
 		public static final String CREATOR = "creator";
 
 		public static final String TIME_CREATED = "time_created";
+
+		public static final String LAST_MODIFIED = "last_modified";
 
 		public static final String REGION = "region";
 
@@ -33,16 +39,8 @@ public final class Contract {
 
 		public static final String HUNTS = "hunts";
 
-		public static final Uri getFetchNewSightsContentUri(String region) {
-			return Uri.parse(CONTENT_URI + "/sights/" + region + "/new");
-		}
-
-		public static final Uri getFetchMostVotedSightsContentUri(String region) {
-			return Uri.parse(CONTENT_URI + "/sights/" + region + "/most_voted");
-		}
-
-		public static final Uri getFetchMostHuntedSightsContentUri(String region) {
-			return Uri.parse(CONTENT_URI + "/sights/" + region + "/most_hunted");
+		public static final Uri getFetchSightsContentUri(String region, String type) {
+			return Uri.parse(CONTENT_URI + "/sights/" + region + "/" + type);
 		}
 
 		public static final Uri getCreateSightClientUri() {
@@ -60,7 +58,9 @@ public final class Contract {
 			values.put(DESCRIPTION, sight.description);
 			values.put(CREATOR, sight.creator);
 			values.put(TIME_CREATED, sight.time_created);
-			values.put(IMAGE_URI, sight.image_uri);
+			values.put(LAST_MODIFIED, sight.last_modified);
+			values.put(IMAGE_KEY, sight.image_key);
+			values.put(THUMB_KEY, sight.thumb_key);
 			values.put(VOTES, sight.votes);
 			values.put(HUNTS, sight.hunts);
 			values.put(LON, sight.lon);

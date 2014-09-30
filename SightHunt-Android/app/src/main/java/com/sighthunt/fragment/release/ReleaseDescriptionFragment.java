@@ -2,7 +2,6 @@ package com.sighthunt.fragment.release;
 
 import android.content.ContentValues;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +26,7 @@ public class ReleaseDescriptionFragment extends Fragment{
 
 
 	public static final String ARG_IMAGE = "image";
+	public static final String ARG_THUMB = "thumb";
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -38,9 +38,10 @@ public class ReleaseDescriptionFragment extends Fragment{
 		mEditTextDescription = (EditText) view.findViewById(R.id.description);
 
 
-		final File file = new File(getArguments().getString(ARG_IMAGE));
+		final File imageFile = new File(getArguments().getString(ARG_IMAGE));
+		final File thumbFile = new File(getArguments().getString(ARG_THUMB));
 
-		Picasso.with(getActivity()).load(file).skipMemoryCache().into(mImageView);
+		Picasso.with(getActivity()).load(imageFile).skipMemoryCache().into(mImageView);
 
 		Button button = (Button) view.findViewById(R.id.buttonCreateSight);
 		button.setOnClickListener(new View.OnClickListener() {
@@ -52,7 +53,8 @@ public class ReleaseDescriptionFragment extends Fragment{
 				sight.region = "";
 				sight.lon = 0;
 				sight.lat = 0;
-				sight.image_uri = file.getAbsolutePath();
+				sight.image_key = imageFile.getAbsolutePath();
+				sight.thumb_key = thumbFile.getAbsolutePath();
 				ContentValues values = Contract.Sight.createContentValues(sight);
 				getActivity().getContentResolver().insert(Contract.Sight.getCreateSightClientUri(), values);
 			}
@@ -62,11 +64,12 @@ public class ReleaseDescriptionFragment extends Fragment{
 		return view;
 	}
 
-	public static ReleaseDescriptionFragment createInstance(String file) {
+	public static ReleaseDescriptionFragment createInstance(String image, String thumb) {
 		ReleaseDescriptionFragment fragment = new ReleaseDescriptionFragment();
 
 		Bundle arguments = new Bundle();
-		arguments.putString(ARG_IMAGE, file);
+		arguments.putString(ARG_IMAGE, image);
+		arguments.putString(ARG_THUMB, thumb);
 		fragment.setArguments(arguments);
 
 		return fragment;

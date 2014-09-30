@@ -4,8 +4,10 @@ import android.app.Service;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.sighthunt.data.Contract;
@@ -16,13 +18,12 @@ import com.sighthunt.util.AccountUtils;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+import java.util.Date;
 import java.util.List;
 
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
-import retrofit.mime.TypedFile;
 
 public class SightHuntService extends Service {
 
@@ -34,9 +35,22 @@ public class SightHuntService extends Service {
 
 	private static final java.lang.String ARG_SIGHT_TYPE = "arg_sight_type";
 
+
+	private SharedPreferences mPrefs;
+
+	private static final String PREF_LAST_MODIFIED_NEW = "prefs_last_modified_new";
+	private static final String PREF_LAST_MODIFIED_MOST_VOTED = "prefs_last_modified_most_voted";
+	private static final String PREF_LAST_MODIFIED_MOST_HUNTED = "prefs_last_modified_most_hunted";
+
 	AccountUtils mAccountUtils = Injector.get(AccountUtils.class);
 
 	ApiManager mApiManager = Injector.get(ApiManager.class);
+
+
+	@Override
+	public void onCreate() {
+		mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+	}
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
@@ -66,36 +80,73 @@ public class SightHuntService extends Service {
 		sight.title = args.getString(Contract.Sight.TITLE);
 		sight.lon = args.getFloat(Contract.Sight.LON);
 		sight.lat = args.getFloat(Contract.Sight.LAT);
-		final String imageUri = args.getString(Contract.Sight.IMAGE_URI);
+		// here the key is actually the image path
+		final String imageKey = args.getString(Contract.Sight.IMAGE_KEY);
+		final String thumbKey = args.getString(Contract.Sight.THUMB_KEY);
 		sight.creator = mAccountUtils.getUsername();
-		TypedFile file = new TypedFile("image/jpeg", new File(imageUri));
-		Log.i("Image file", file.fileName());
-		mApiManager.getSightService().createSight(sight, file, new Callback<Sight>() {
+		mApiManager.getSightService().createSight(sight, new Callback<Sight>() {
 			@Override
 			public void success(Sight s, Response response) {
-//				sight.key = s.key;
-//				sight.image_uri = s.image_uri;
-//				sight.time_created = s.time_created;
-//				sight.votes = 0;
-//				sight.hunts = 0;
-//				ContentValues values = Contract.Sight.createContentValues(sight);
-//				getContentResolver().insert(Contract.Sight.getCreateSightServerUri(), values);
+				if (s == null) return;
+				Log.i("Sight key", s.key);
+				String uploadUrl = s.image_key;
+				mApiManager.uploadImage(uploadUrl, s.key, imageKey, thumbKey, new Callback<Sight>() {
+					@Override
+					public void success(Sight sight, Response response) {
+					}
+
+					@Override
+					public void failure(RetrofitError error) {
+					}
+				});
 			}
 
 			@Override
 			public void failure(RetrofitError error) {
 
+				Log.i("post sight failed", error.getMessage());
 			}
 		});
+	}
+
+	private long getLastModified(String type) {
+		if (SightSortType.ByRegion.NEW.toString().equals(type)) {
+			return mPrefs.getLong(PREF_LAST_MODIFIED_NEW, 0);
+		} else if (SightSortType.ByRegion.MOST_HUNTED.toString().equals(type)) {
+			return mPrefs.getLong(PREF_LAST_MODIFIED_MOST_HUNTED, 0);
+		} else if (SightSortType.ByRegion.MOST_VOTED.toString().equals(type)) {
+			return mPrefs.getLong(PREF_LAST_MODIFIED_MOST_VOTED, 0);
+		} else {
+			return 0;
+		}
+	}
+
+	private void saveLastModified(long lastModified, String type) {
+		if (SightSortType.ByRegion.NEW.toString().equals(type)) {
+			mPrefs.edit().putLong(PREF_LAST_MODIFIED_NEW, lastModified).commit();
+		} else if (SightSortType.ByRegion.MOST_HUNTED.toString().equals(type)) {
+			mPrefs.edit().putLong(PREF_LAST_MODIFIED_MOST_HUNTED, lastModified).commit();
+		} else if (SightSortType.ByRegion.MOST_VOTED.toString().equals(type)) {
+			mPrefs.edit().putLong(PREF_LAST_MODIFIED_MOST_VOTED, lastModified).commit();
+		}
 	}
 
 	private void fetchSightsByRegion(Bundle args) {
 		final String region = args.getString(Contract.Sight.REGION);
 		final String type = args.getString(ARG_SIGHT_TYPE);
-		mApiManager.getSightService().getSightsByRegion(region, type, new Callback<List<Sight>>() {
+
+		long lastModified = getLastModified(type);
+
+		mApiManager.getSightService().getSightsByRegion(region, lastModified, type, new Callback<List<Sight>>() {
 			@Override
 			public void success(List<Sight> sights, Response response) {
-				// getContentResolver().insert();
+				for(Sight sight : sights) {
+					ContentValues values = Contract.Sight.createContentValues(sight);
+					getContentResolver().insert(Contract.Sight.getCreateSightServerUri(), values);
+				}
+
+				saveLastModified(new Date().getTime(), type);
+				getContentResolver().notifyChange(Contract.Sight.getFetchSightsContentUri(region, type), null);
 			}
 
 			@Override
@@ -131,13 +182,14 @@ public class SightHuntService extends Service {
 		return i;
 	}
 
-	public static Intent getInsertSightIntent(Context context, String region, String title, String description, String image, float lon, float lat) {
+	public static Intent getInsertSightIntent(Context context, String region, String title, String description, String image, String thumb, float lon, float lat) {
 		Intent i = new Intent(ACTION_INSERT_SIGHTS);
 		i.setClass(context, SightHuntService.class);
 		i.putExtra(Contract.Sight.REGION, region);
 		i.putExtra(Contract.Sight.TITLE, title);
 		i.putExtra(Contract.Sight.DESCRIPTION, description);
-		i.putExtra(Contract.Sight.IMAGE_URI, image);
+		i.putExtra(Contract.Sight.IMAGE_KEY, image);
+		i.putExtra(Contract.Sight.THUMB_KEY, thumb);
 		i.putExtra(Contract.Sight.LON, lon);
 		i.putExtra(Contract.Sight.LAT, lat);
 		return i;

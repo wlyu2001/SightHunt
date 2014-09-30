@@ -9,9 +9,11 @@ public class Sight {
 	public int hunts;
 	public int votes;
 	public String region;
-	public String image_uri;
+	public String image_key;
+	public String thumb_key;
 	public String creator;
 	public float lon;
 	public float lat;
 	public long time_created;
+	public long last_modified;
 }

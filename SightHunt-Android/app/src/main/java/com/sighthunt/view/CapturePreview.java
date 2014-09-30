@@ -69,7 +69,7 @@ public class CapturePreview extends SurfaceView implements SurfaceHolder.Callbac
 	/**
 	 * Take a picture and and convert it from bytes[] to Bitmap.
 	 */
-	public static void takeAPicture(final File file, final CapturePreviewObserver observer) {
+	public static void takeAPicture(final File image, final File thumb, final CapturePreviewObserver observer) {
 
 		Camera.PictureCallback mPictureCallback = new Camera.PictureCallback() {
 			@Override
@@ -83,10 +83,14 @@ public class CapturePreview extends SurfaceView implements SurfaceHolder.Callbac
 				Matrix matrix = new Matrix();
 				matrix.postRotate(90);
 				Bitmap processed = Bitmap.createBitmap(mBitmap, (w - size) / 2, (h - size) / 2, size, size, matrix, true);
-
+				Bitmap scaled = Bitmap.createScaledBitmap(processed, 500, 500, false);
+				Bitmap scaled1 = Bitmap.createScaledBitmap(processed, 100, 100, false);
 				try {
-					FileOutputStream out = new FileOutputStream(file);
-					processed.compress(Bitmap.CompressFormat.PNG, 90, out);
+					FileOutputStream out = new FileOutputStream(image);
+					scaled.compress(Bitmap.CompressFormat.JPEG, 100, out);
+
+					out = new FileOutputStream(thumb);
+					scaled1.compress(Bitmap.CompressFormat.JPEG, 100, out);
 					observer.pictureCaptured(true);
 				} catch (IOException e) {
 					e.printStackTrace();

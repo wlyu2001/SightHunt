@@ -27,6 +27,8 @@ public class Metadata {
         public static final String TIME_CREATED = "time_created";
         public static final String LON = "lon";
         public static final String LAT = "lat";
+        public static final String IMAGE_KEY = "image_key";
+        public static final String THUMB_KEY = "thumb_key";
     }
 
     public class Hunt {

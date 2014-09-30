@@ -35,6 +35,16 @@
     </servlet>
 
     <servlet>
+        <servlet-name>upload-sight-image</servlet-name>
+        <servlet-class>com.sighthunt.servlet.sight.UploadSightImageServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>serve-image</servlet-name>
+        <servlet-class>com.sighthunt.servlet.sight.ServeImageServlet</servlet-class>
+    </servlet>
+
+    <servlet>
         <servlet-name>fetch-user</servlet-name>
         <servlet-class>com.sighthunt.servlet.user.FetchUserServlet</servlet-class>
     </servlet>
@@ -82,6 +92,16 @@
     <servlet-mapping>
         <servlet-name>edit-user</servlet-name>
         <url-pattern>/user/edit</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>upload-sight-image</servlet-name>
+        <url-pattern>/sight/upload_image</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>serve-image</servlet-name>
+        <url-pattern>/image/serve</url-pattern>
     </servlet-mapping>
 
 </web-app>

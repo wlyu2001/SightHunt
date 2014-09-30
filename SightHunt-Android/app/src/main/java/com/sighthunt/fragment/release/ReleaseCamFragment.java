@@ -24,18 +24,20 @@ public class ReleaseCamFragment extends Fragment {
 		if (!folder.exists()) {
 			folder.mkdir();
 		}
-		String s = "tmp.png";
+		String image = "image.png";
+		String thumb = "thumb.png";
 
-		final File file = new File(folder, s);
+		final File imageFile = new File(folder, image);
+		final File thumbFile = new File(folder, thumb);
 		Button button = (Button) view.findViewById(R.id.button_take);
 		button.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				CapturePreview.takeAPicture(file, new CapturePreview.CapturePreviewObserver() {
+				CapturePreview.takeAPicture(imageFile, thumbFile, new CapturePreview.CapturePreviewObserver() {
 					@Override
 					public void pictureCaptured(boolean success) {
 						if (success) {
-							Fragment fragment = ReleaseDescriptionFragment.createInstance(file.getPath());
+							Fragment fragment = ReleaseDescriptionFragment.createInstance(imageFile.getPath(), thumbFile.getPath());
 							getFragmentManager().beginTransaction().replace(R.id.container, fragment, null).addToBackStack(null).commit();
 						}
 					}

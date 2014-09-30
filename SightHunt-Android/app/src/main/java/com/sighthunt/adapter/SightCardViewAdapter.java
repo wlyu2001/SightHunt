@@ -7,11 +7,14 @@ import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 
 import com.sighthunt.data.model.Sight;
+import com.sighthunt.util.ImageHelper;
 import com.sighthunt.view.CardView;
 
 public class SightCardViewAdapter extends CursorAdapter {
+	Context mContext;
 	public SightCardViewAdapter(Context context) {
 		super(context, null, 0);
+		mContext = context;
 	}
 
 	@Override
@@ -27,6 +30,7 @@ public class SightCardViewAdapter extends CursorAdapter {
 
 		Sight sight = new Sight();
 		sight.bindCursor(cursor);
-		SightAdapterHelper.bindSightToCardView(sight, cardView);
+
+		cardView.setImage(ImageHelper.getImageUrl(sight.thumbKey));
 	}
 }
