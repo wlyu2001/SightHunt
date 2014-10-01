@@ -12,10 +12,12 @@ public class SightHuntDatabase extends SQLiteOpenHelper {
 	private static final String COMMA_SEP = ",";
 
 	private static final String DATABASE_NAME = "sight.db";
-	public static final int DATABASE_VERSION = 1;
+	public static final int DATABASE_VERSION = 4;
 	private static final String SQL_CREATE_SIGHTS =
 			"CREATE TABLE " + Contract.Sight.TABLE_NAME + " (" +
 					Contract.Sight.KEY + " TEXT PRIMARY KEY," +
+					Contract.Sight.TITLE + TEXT_TYPE + COMMA_SEP +
+					Contract.Sight.REGION + TEXT_TYPE + COMMA_SEP +
 					Contract.Sight.CREATOR + TEXT_TYPE + COMMA_SEP +
 					Contract.Sight.TIME_CREATED + INTEGER_TYPE + COMMA_SEP +
 					Contract.Sight.VOTES + INTEGER_TYPE + COMMA_SEP +

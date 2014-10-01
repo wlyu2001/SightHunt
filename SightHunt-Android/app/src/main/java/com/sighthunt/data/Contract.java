@@ -13,7 +13,8 @@ public final class Contract {
 
 		public static final String TABLE_NAME = "sight";
 
-		public static final String KEY = "key";
+		// have to be called _id for cursor to work
+		public static final String KEY = "_id";
 
 		public static final String TITLE = "title";
 
@@ -40,7 +41,7 @@ public final class Contract {
 		public static final String HUNTS = "hunts";
 
 		public static final Uri getFetchSightsContentUri(String region, String type) {
-			return Uri.parse(CONTENT_URI + "/sights/" + region + "/" + type);
+			return Uri.parse(CONTENT_URI + "/sight/" + region + "/" + type);
 		}
 
 		public static final Uri getCreateSightClientUri() {
@@ -56,6 +57,7 @@ public final class Contract {
 			values.put(KEY, sight.key);
 			values.put(TITLE, sight.title);
 			values.put(DESCRIPTION, sight.description);
+			values.put(REGION, sight.region);
 			values.put(CREATOR, sight.creator);
 			values.put(TIME_CREATED, sight.time_created);
 			values.put(LAST_MODIFIED, sight.last_modified);
@@ -66,6 +68,23 @@ public final class Contract {
 			values.put(LON, sight.lon);
 			values.put(LAT, sight.lat);
 			return values;
+		}
+
+		public static final com.sighthunt.network.model.Sight createSightFromContentValues(ContentValues values) {
+			com.sighthunt.network.model.Sight sight = new com.sighthunt.network.model.Sight();
+			sight.title = values.getAsString(TITLE);
+			sight.description = values.getAsString(DESCRIPTION);
+			sight.creator = values.getAsString(CREATOR);
+			sight.region = values.getAsString(REGION);
+			sight.time_created = values.getAsLong(TIME_CREATED);
+			sight.last_modified = values.getAsLong(LAST_MODIFIED);
+			sight.image_key = values.getAsString(IMAGE_KEY);
+			sight.thumb_key = values.getAsString(THUMB_KEY);
+			sight.votes = values.getAsInteger(VOTES);
+			sight.hunts = values.getAsInteger(HUNTS);
+			sight.lon = values.getAsFloat(LON);
+			sight.lat = values.getAsFloat(LAT);
+			return sight;
 		}
 
 	}

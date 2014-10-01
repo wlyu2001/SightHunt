@@ -7,15 +7,16 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.GridView;
 
 import com.sighthunt.R;
 import com.sighthunt.activity.HuntActivity;
+import com.sighthunt.activity.LoginActivity;
 import com.sighthunt.adapter.SightCardViewAdapter;
 import com.sighthunt.data.Contract;
 import com.sighthunt.data.model.Sight;
@@ -50,6 +51,14 @@ public class NewSightsFragment extends Fragment {
 	}
 
 	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		String region = "Stockholm";
+		getLoaderManager().restartLoader(R.id.loader_new_sights, null, getLoaderCallbacks(region));
+	}
+
+	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		final View view = inflater.inflate(R.layout.fragment_new_sights, container, false);
 
@@ -58,16 +67,13 @@ public class NewSightsFragment extends Fragment {
 		gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				Sight sight = (Sight)mAdapter.getItem(position);
+				Cursor cursor = (Cursor) mAdapter.getItem(position);
 				startActivity(new Intent(getActivity(), HuntActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
 			}
 		});
 
 		mAdapter = new SightCardViewAdapter(getActivity());
 		gridView.setAdapter(mAdapter);
-
-		String region = "";
-		getLoaderManager().restartLoader(R.id.loader_new_sights, null, getLoaderCallbacks(region));
 
 		return view;
 	}

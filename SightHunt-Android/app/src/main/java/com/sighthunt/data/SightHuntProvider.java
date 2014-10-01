@@ -10,6 +10,7 @@ import android.net.Uri;
 
 import com.sighthunt.inject.Injector;
 import com.sighthunt.network.SightHuntService;
+import com.sighthunt.network.model.Sight;
 import com.sighthunt.network.model.SightSortType;
 import com.sighthunt.util.AccountUtils;
 
@@ -17,9 +18,8 @@ import java.util.List;
 
 public class SightHuntProvider extends ContentProvider {
 
-	AccountUtils mAccountUtils = Injector.get(AccountUtils.class);
-
 	public static enum ContentType {
+		UNKNOWN,
 		SIGHT,
 		SIGHTS_NEW,
 		SIGHTS_MOST_HUNTED,
@@ -53,7 +53,6 @@ public class SightHuntProvider extends ContentProvider {
 	@Override
 	public boolean onCreate() {
 		SightHuntDatabase db = new SightHuntDatabase(getContext());
-
 		mDb = db.getReadableDatabase();
 		return false;
 	}
@@ -89,7 +88,7 @@ public class SightHuntProvider extends ContentProvider {
 
 		String sortOrder = "";
 		String selection = Contract.Sight.CREATOR + " <> ?";
-		String[] selectionArgs = new String[]{mAccountUtils.getUsername()};
+		String[] selectionArgs = new String[]{Injector.get(AccountUtils.class).getUsername()};
 
 		switch (getContentType(uri)) {
 			case SIGHT: {
@@ -110,10 +109,11 @@ public class SightHuntProvider extends ContentProvider {
 			default: {
 			}
 		}
-
+		Cursor cursor = mDb.query(Contract.Sight.TABLE_NAME, projection, null, null, null, null, sortOrder);
+		cursor.setNotificationUri(getContext().getContentResolver(), uri);
 
 		//return mDb.query(Contract.Sight.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
-		return mDb.query(Contract.Sight.TABLE_NAME, projection, null, null, null, null, sortOrder);
+		return cursor;
 
 	}
 
@@ -123,8 +123,10 @@ public class SightHuntProvider extends ContentProvider {
 	}
 
 	public ContentType getContentType(Uri uri) {
-		int result = sUriMatcher.match(uri);
-		return ContentType.fromUriMatch(result);
+		int match = sUriMatcher.match(uri);
+		if (match == UriMatcher.NO_MATCH)
+			return ContentType.UNKNOWN;
+		return ContentType.fromUriMatch(match);
 	}
 
 	@Override
@@ -137,15 +139,9 @@ public class SightHuntProvider extends ContentProvider {
 		switch (getContentType(uri)) {
 			case NEW_SIGHT_CLIENT: {
 				// insert initialized from the client to the server
-				String title = values.getAsString(Contract.Sight.TITLE);
-				String description = values.getAsString(Contract.Sight.DESCRIPTION);
-				String image = values.getAsString(Contract.Sight.IMAGE_KEY);
-				String thumb = values.getAsString(Contract.Sight.THUMB_KEY);
-				String region = values.getAsString(Contract.Sight.REGION);
-				float lon = values.getAsFloat(Contract.Sight.LON);
-				float lat = values.getAsFloat(Contract.Sight.LAT);
+				Sight sight = Contract.Sight.createSightFromContentValues(values);
 
-				getContext().startService(SightHuntService.getInsertSightIntent(getContext(), region, title, description, image, thumb, lon, lat));
+				getContext().startService(SightHuntService.getInsertSightIntent(getContext(), sight));
 			}
 			case NEW_SIGHT_SERVER: {
 				//insert initiated from the server to the client

@@ -11,11 +11,15 @@ import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.sighthunt.R;
+import com.sighthunt.activity.LoginActivity;
 import com.sighthunt.data.Contract;
+import com.sighthunt.inject.Injector;
 import com.sighthunt.network.model.Sight;
+import com.sighthunt.util.AccountUtils;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
+import java.util.Date;
 
 public class ReleaseDescriptionFragment extends Fragment{
 
@@ -23,6 +27,8 @@ public class ReleaseDescriptionFragment extends Fragment{
 	ImageView mImageView;
 	EditText mEditTextTitle;
 	EditText mEditTextDescription;
+
+	AccountUtils mAccountUtils = Injector.get(AccountUtils.class);
 
 
 	public static final String ARG_IMAGE = "image";
@@ -49,8 +55,11 @@ public class ReleaseDescriptionFragment extends Fragment{
 			public void onClick(View v) {
 				Sight sight = new Sight();
 				sight.title = mEditTextTitle.getText().toString();
+				sight.region = "Stockholm";
 				sight.description = mEditTextDescription.getText().toString();
-				sight.region = "";
+				sight.creator = mAccountUtils.getUsername();
+				sight.last_modified = new Date().getTime();
+				sight.time_created = new Date().getTime();
 				sight.lon = 0;
 				sight.lat = 0;
 				sight.image_key = imageFile.getAbsolutePath();

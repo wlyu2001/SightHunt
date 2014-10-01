@@ -33,8 +33,8 @@ public class ApiManager implements Injectable {
 	public interface SightInterface {
 
 		// type can be new, most_voted, most_hunted
-		@GET("/sight/list/{region}")
-		void getSightsByRegion(@Path("region") String region, @Query("last_modified") long lastModified, @Query("type") String type, Callback<List<Sight>> callback);
+		@GET("/sight/list")
+		void getSightsByRegion(@Query("region") String region, @Query("last_modified") long lastModified, @Query("type") String type, Callback<List<Sight>> callback);
 
 		@GET("/sight/fetch")
 		void getSight(@Query("id") String id, Callback<Sight> callback);

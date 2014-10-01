@@ -1,5 +1,7 @@
 package com.sighthunt.servlet.sight;
 
+import com.google.appengine.api.datastore.Query;
+import com.sighthunt.data.Metadata;
 import com.sighthunt.util.HttpServletRequestHelper;
 
 import javax.servlet.http.HttpServlet;
@@ -10,11 +12,6 @@ import java.io.IOException;
 public class FetchSightServlet extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        if (!HttpServletRequestHelper.isRequestTokenValid(req)) {
-            resp.sendError(401);
-            return;
-        }
 
-        
     }
 }

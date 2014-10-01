@@ -29,7 +29,7 @@ public class NewSightServlet extends HttpServlet {
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         Sight sight = new Gson().fromJson(req.getReader(), Sight.class);
 
-        Entity sightEntity = DBHelper.createNewSightEntity(sight);
+        Entity sightEntity = DBHelper.createSightEntity(sight);
         Key key = datastore.put(sightEntity);
 
         BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();

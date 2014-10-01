@@ -16,24 +16,24 @@ import java.io.IOException;
 
 public class SignUpServlet extends HttpServlet {
 
-    @Override
-    public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+	@Override
+	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
-        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-        User user = new Gson().fromJson(req.getReader(), User.class);
+		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+		User user = new Gson().fromJson(req.getReader(), User.class);
 
-        Entity result = DBHelper.getUserByUsername(user.username, datastore);
+		Entity result = DBHelper.getUserByUsername(user.username, datastore);
 
-        if (result == null) {
+		if (result == null) {
 
-            user.token = EncryptUtils.getInstance().generateAndStoreToken(user.username);
-            Entity userEntity = DBHelper.createNewUserEntity(user);
-            datastore.put(userEntity);
+			user.token = EncryptUtils.getInstance().generateAndStoreToken(user.username);
+			Entity userEntity = DBHelper.createNewUserEntity(user);
+			datastore.put(userEntity);
 
-            User returnUser = new User();
-            returnUser.username = user.username;
-            returnUser.token = user.token;
-            JsonResponseWriter.write(resp, returnUser);
-        }
-    }
+			User returnUser = new User();
+			returnUser.username = user.username;
+			returnUser.token = user.token;
+			JsonResponseWriter.write(resp, returnUser);
+		}
+	}
 }

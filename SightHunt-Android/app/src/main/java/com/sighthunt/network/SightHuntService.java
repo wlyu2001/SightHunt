@@ -42,8 +42,6 @@ public class SightHuntService extends Service {
 	private static final String PREF_LAST_MODIFIED_MOST_VOTED = "prefs_last_modified_most_voted";
 	private static final String PREF_LAST_MODIFIED_MOST_HUNTED = "prefs_last_modified_most_hunted";
 
-	AccountUtils mAccountUtils = Injector.get(AccountUtils.class);
-
 	ApiManager mApiManager = Injector.get(ApiManager.class);
 
 
@@ -80,10 +78,12 @@ public class SightHuntService extends Service {
 		sight.title = args.getString(Contract.Sight.TITLE);
 		sight.lon = args.getFloat(Contract.Sight.LON);
 		sight.lat = args.getFloat(Contract.Sight.LAT);
+		sight.time_created = args.getLong(Contract.Sight.TIME_CREATED);
+		sight.last_modified = args.getLong(Contract.Sight.LAST_MODIFIED);
+		sight.creator = args.getString(Contract.Sight.CREATOR);
 		// here the key is actually the image path
 		final String imageKey = args.getString(Contract.Sight.IMAGE_KEY);
 		final String thumbKey = args.getString(Contract.Sight.THUMB_KEY);
-		sight.creator = mAccountUtils.getUsername();
 		mApiManager.getSightService().createSight(sight, new Callback<Sight>() {
 			@Override
 			public void success(Sight s, Response response) {
@@ -137,6 +137,8 @@ public class SightHuntService extends Service {
 
 		long lastModified = getLastModified(type);
 
+		Log.i("SightHuntService", "FetchSightsByRegion");
+
 		mApiManager.getSightService().getSightsByRegion(region, lastModified, type, new Callback<List<Sight>>() {
 			@Override
 			public void success(List<Sight> sights, Response response) {
@@ -146,7 +148,10 @@ public class SightHuntService extends Service {
 				}
 
 				saveLastModified(new Date().getTime(), type);
-				getContentResolver().notifyChange(Contract.Sight.getFetchSightsContentUri(region, type), null);
+				// only update content provider when there is new sights..
+				if (sights.size() > 0) {
+					getContentResolver().notifyChange(Contract.Sight.getFetchSightsContentUri(region, type), null);
+				}
 			}
 
 			@Override
@@ -182,16 +187,19 @@ public class SightHuntService extends Service {
 		return i;
 	}
 
-	public static Intent getInsertSightIntent(Context context, String region, String title, String description, String image, String thumb, float lon, float lat) {
+	public static Intent getInsertSightIntent(Context context, Sight sight) {
 		Intent i = new Intent(ACTION_INSERT_SIGHTS);
 		i.setClass(context, SightHuntService.class);
-		i.putExtra(Contract.Sight.REGION, region);
-		i.putExtra(Contract.Sight.TITLE, title);
-		i.putExtra(Contract.Sight.DESCRIPTION, description);
-		i.putExtra(Contract.Sight.IMAGE_KEY, image);
-		i.putExtra(Contract.Sight.THUMB_KEY, thumb);
-		i.putExtra(Contract.Sight.LON, lon);
-		i.putExtra(Contract.Sight.LAT, lat);
+		i.putExtra(Contract.Sight.REGION, sight.region);
+		i.putExtra(Contract.Sight.CREATOR, sight.creator);
+		i.putExtra(Contract.Sight.TITLE, sight.title);
+		i.putExtra(Contract.Sight.DESCRIPTION, sight.description);
+		i.putExtra(Contract.Sight.IMAGE_KEY, sight.image_key);
+		i.putExtra(Contract.Sight.THUMB_KEY, sight.thumb_key);
+		i.putExtra(Contract.Sight.LON, sight.lon);
+		i.putExtra(Contract.Sight.LAT, sight.lat);
+		i.putExtra(Contract.Sight.TIME_CREATED, sight.time_created);
+		i.putExtra(Contract.Sight.LAST_MODIFIED, sight.last_modified);
 		return i;
 	}
 
