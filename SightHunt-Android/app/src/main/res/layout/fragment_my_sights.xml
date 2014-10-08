@@ -1,0 +1,22 @@
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout
+        android:id="@+id/ptr_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Your content, here we're using a ScrollView -->
+
+        <ListView
+            android:id="@+id/listView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+
+    </uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout>
+
+
+</FrameLayout>

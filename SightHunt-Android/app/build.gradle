@@ -48,4 +48,5 @@ dependencies {
     compile project(':libs:opencv')
     compile project(':libs:facebook')
     compile 'com.google.android.gms:play-services:5.+'
+    compile 'com.github.chrisbanes.actionbarpulltorefresh:library:+'
 }

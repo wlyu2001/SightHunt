@@ -2,6 +2,7 @@ package com.sighthunt.util;
 
 import com.google.appengine.api.datastore.*;
 import com.sighthunt.data.Metadata;
+import com.sighthunt.network.model.Hunt;
 import com.sighthunt.network.model.Sight;
 import com.sighthunt.network.model.User;
 
@@ -72,8 +73,18 @@ public class DBHelper {
 		return sightEntity;
 	}
 
+	public static Entity createHuntEntity(Hunt hunt) {
+		Entity huntEntity = new Entity(Metadata.Hunt.ENTITY_NAME);
+		huntEntity.setProperty(Metadata.Hunt.USER, hunt.username);
+		huntEntity.setProperty(Metadata.Hunt.SIGHT, hunt.sight_key);
+		huntEntity.setProperty(Metadata.Hunt.VOTE, hunt.vote);
+		huntEntity.setProperty(Metadata.Hunt.TIME, hunt.time);
+		return huntEntity;
+	}
+
 	public static Sight createSightObject(Entity entity) {
 		Sight sight = new Sight();
+		sight.key = String.valueOf(entity.getKey().getId());
 		sight.title = (String) entity.getProperty(Metadata.Sight.TITLE);
 		sight.description = (String) entity.getProperty(Metadata.Sight.DESCRIPTION);
 		sight.creator = (String) entity.getProperty(Metadata.Sight.CREATOR);

@@ -1,9 +1,9 @@
 package com.sighthunt.fragment.hunt;
 
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,42 +11,37 @@ import android.widget.Button;
 import android.widget.ImageView;
 
 import com.sighthunt.R;
+import com.sighthunt.data.Contract;
+import com.sighthunt.fragment.LocationAwareFragment;
+import com.sighthunt.util.ImageFiles;
 import com.sighthunt.view.CapturePreview;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
 
-public class HuntCamFragment extends Fragment {
+public class HuntCamFragment extends LocationAwareFragment {
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		final View view = inflater.inflate(R.layout.fragment_hunt_cam, container, false);
 
-		File folder = new File(Environment.getExternalStorageDirectory() + "/sighthunt/image");
-		if (!folder.exists()) {
-			folder.mkdir();
-		}
-		String s = "tmp.png";
-		String s1 = "tmp1.png";
-		String s2 = "tmp_thumb.png";
+		Bundle args = getArguments();
+		final String key = args.getString(Contract.Sight.KEY);
 
-		final File file = new File(folder, s);
-		final File file1 = new File(folder, s1);
-		final File file2 = new File(folder, s2);
 		ImageView imageView = (ImageView) view.findViewById(R.id.image_view);
 		imageView.setAlpha(0.5f);
-		// skip cache for testing.. of course we want to cache images
-		Picasso.with(getActivity()).load(file).skipMemoryCache().into(imageView);
+		Picasso.with(getActivity()).load(ImageFiles.ORIGINAL_IMAGE).skipMemoryCache().into(imageView);
 		Button button = (Button) view.findViewById(R.id.button_take);
 		button.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				CapturePreview.takeAPicture(file1, file2, new CapturePreview.CapturePreviewObserver() {
+				CapturePreview.takeAPicture(ImageFiles.MATCH_IMAGE, ImageFiles.MATCH_IMAGE_THUMB, new CapturePreview.CapturePreviewObserver() {
 					@Override
 					public void pictureCaptured(boolean success) {
 						if (success) {
-							Fragment fragment = HuntResultFragment.createInstance(file.getPath(), file1.getPath());
-							getFragmentManager().beginTransaction().replace(R.id.container, fragment, null).addToBackStack(null).commit();
+							Location location = getCurrentLocation();
+							Fragment fragment = HuntResultFragment.createInstance(key, (float)location.getLongitude(), (float)location.getLatitude());
+							getFragmentManager().beginTransaction().replace(R.id.container, fragment, null).addToBackStack("HuntCamFragment").commit();
 						}
 					}
 				});
@@ -55,5 +50,13 @@ public class HuntCamFragment extends Fragment {
 
 
 		return view;
+	}
+
+	public static HuntCamFragment createInstance(String key) {
+		HuntCamFragment fragment = new HuntCamFragment();
+		Bundle args = new Bundle();
+		args.putString(Contract.Sight.KEY, key);
+		fragment.setArguments(args);
+		return fragment;
 	}
 }

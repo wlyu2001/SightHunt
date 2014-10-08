@@ -84,7 +84,7 @@ public class CapturePreview extends SurfaceView implements SurfaceHolder.Callbac
 				matrix.postRotate(90);
 				Bitmap processed = Bitmap.createBitmap(mBitmap, (w - size) / 2, (h - size) / 2, size, size, matrix, true);
 				Bitmap scaled = Bitmap.createScaledBitmap(processed, 500, 500, false);
-				Bitmap scaled1 = Bitmap.createScaledBitmap(processed, 100, 100, false);
+				Bitmap scaled1 = Bitmap.createScaledBitmap(processed, 200, 200, false);
 				try {
 					FileOutputStream out = new FileOutputStream(image);
 					scaled.compress(Bitmap.CompressFormat.JPEG, 100, out);

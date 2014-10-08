@@ -1,8 +1,11 @@
 package com.sighthunt.data;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import com.sighthunt.util.PreferenceUtil;
 
 public class SightHuntDatabase extends SQLiteOpenHelper {
 
@@ -12,7 +15,7 @@ public class SightHuntDatabase extends SQLiteOpenHelper {
 	private static final String COMMA_SEP = ",";
 
 	private static final String DATABASE_NAME = "sight.db";
-	public static final int DATABASE_VERSION = 4;
+	public static final int DATABASE_VERSION = 8;
 	private static final String SQL_CREATE_SIGHTS =
 			"CREATE TABLE " + Contract.Sight.TABLE_NAME + " (" +
 					Contract.Sight.KEY + " TEXT PRIMARY KEY," +
@@ -29,22 +32,46 @@ public class SightHuntDatabase extends SQLiteOpenHelper {
 					Contract.Sight.LON + REAL_TYPE + COMMA_SEP +
 					Contract.Sight.LAT + REAL_TYPE + " )";
 
+	private static final String SQL_CREATE_HUNTS =
+			"CREATE TABLE " + Contract.Hunt.TABLE_NAME + " (" +
+					Contract.Hunt.USER + TEXT_TYPE + COMMA_SEP +
+					Contract.Hunt.SIGHT + TEXT_TYPE + COMMA_SEP +
+					Contract.Hunt.VOTE + INTEGER_TYPE + COMMA_SEP +
+					"PRIMARY KEY (" + Contract.Hunt.USER + COMMA_SEP +
+					Contract.Hunt.SIGHT + "))";
+
 	private static final String SQL_DELETE_SIGHTS =
 			"DROP TABLE IF EXISTS " + Contract.Sight.TABLE_NAME;
 
 
+	private static final String SQL_DELETE_HUNTS =
+			"DROP TABLE IF EXISTS " + Contract.Hunt.TABLE_NAME;
+
+	private Context mContext;
+
 	public SightHuntDatabase(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
+		mContext = context;
 	}
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		db.execSQL(SQL_CREATE_SIGHTS);
+		db.execSQL(SQL_CREATE_HUNTS);
+		clearSharedPreference();
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		db.execSQL(SQL_DELETE_SIGHTS);
+		db.execSQL(SQL_DELETE_HUNTS);
 		onCreate(db);
+	}
+
+	private void clearSharedPreference() {
+		SharedPreferences prefs = PreferenceUtil.getDataSharedPreferences(mContext);
+		SharedPreferences.Editor editor = prefs.edit();
+		editor.clear();
+		editor.commit();
 	}
 }

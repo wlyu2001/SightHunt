@@ -22,7 +22,6 @@ import retrofit.http.GET;
 import retrofit.http.Multipart;
 import retrofit.http.POST;
 import retrofit.http.Part;
-import retrofit.http.Path;
 import retrofit.http.Query;
 import retrofit.mime.TypedFile;
 import retrofit.mime.TypedString;
@@ -33,8 +32,8 @@ public class ApiManager implements Injectable {
 	public interface SightInterface {
 
 		// type can be new, most_voted, most_hunted
-		@GET("/sight/list")
-		void getSightsByRegion(@Query("region") String region, @Query("last_modified") long lastModified, @Query("type") String type, Callback<List<Sight>> callback);
+		@GET("/sight/list_by_region")
+		void getSightsByRegion(@Query("region") String region, @Query("last_modified") long lastModified, @Query("type") String type, @Query("offset") int start, @Query("limit") int limit, Callback<List<Sight>> callback);
 
 		@GET("/sight/fetch")
 		void getSight(@Query("id") String id, Callback<Sight> callback);
@@ -46,8 +45,11 @@ public class ApiManager implements Injectable {
 		void editSight(@Body Sight sight, Callback<String> callback);
 
 		// type can be hunted, created
-		@GET("/sight/list/{user}")
-		void getSightsByUser(@Path("user") String id, @Query("type") String type, Callback<List<Sight>> callback);
+		@GET("/sight/list_by_user")
+		void getSightsByUser(@Query("user") String id, @Query("last_modified") long lastModified, @Query("type") String type, @Query("offset") int start, @Query("limit") int limit, Callback<List<Sight>> callback);
+
+		@GET("/sight/hunt")
+		void huntSight(@Query("user") String username, @Query("sight") String sightKey, @Query("vote") int vote, Callback<Integer> callback);
 
 	}
 
@@ -64,7 +66,6 @@ public class ApiManager implements Injectable {
 
 		@GET("/user/login")
 		User loginSync(@Query("username") String username, @Query("password") String password);
-
 
 		@GET("/user/login")
 		void loginAsync(@Query("username") String username, @Query("password") String password, Callback<User> callback);
@@ -143,10 +144,10 @@ public class ApiManager implements Injectable {
 		TypedString typedString = new TypedString(key);
 
 		RestAdapter imageAdapter = new RestAdapter.Builder()
-		.setEndpoint(url)
-		.setRequestInterceptor(mIntercetper1)
-		.setLogLevel(RestAdapter.LogLevel.FULL)
-		.build();
+				.setEndpoint(url)
+				.setRequestInterceptor(mIntercetper1)
+				.setLogLevel(RestAdapter.LogLevel.FULL)
+				.build();
 		imageAdapter.create(ImageInterface.class).uploadImage(typedString, imageFile, thumbFile, callback);
 	}
 

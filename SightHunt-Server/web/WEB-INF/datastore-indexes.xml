@@ -4,4 +4,15 @@
         <property name="region" direction="asc"/>
         <property name="time_created" direction="desc"/>
     </datastore-index>
+
+    <datastore-index kind="Sight" ancestor="false" source="manual">
+        <property name="region" direction="asc"/>
+        <property name="hunts" direction="desc"/>
+    </datastore-index>
+
+    <datastore-index kind="Sight" ancestor="false" source="manual">
+        <property name="region" direction="asc"/>
+        <property name="votes" direction="desc"/>
+    </datastore-index>
+
 </datastore-indexes>

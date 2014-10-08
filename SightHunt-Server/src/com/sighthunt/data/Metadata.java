@@ -39,6 +39,7 @@ public class Metadata {
 		public static final String VOTE = "vote";
 		public static final String SIGHT = "sight";
 		public static final String USER = "user";
+		public static final String TIME = "time";
 
 	}
 }

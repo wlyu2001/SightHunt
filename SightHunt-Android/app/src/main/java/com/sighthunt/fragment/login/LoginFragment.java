@@ -10,6 +10,7 @@ import android.widget.EditText;
 
 import com.sighthunt.R;
 import com.sighthunt.activity.LoginActivity;
+import com.sighthunt.util.PasswordHash;
 
 public class LoginFragment extends Fragment {
 
@@ -42,7 +43,7 @@ public class LoginFragment extends Fragment {
 			public void onClick(View v) {
 				String username = mEditTextUserName.getText().toString();
 				String password = mEditTextPassword.getText().toString();
-				mLoginActivity.login(username, password);
+				mLoginActivity.login(username, PasswordHash.hash(password));
 			}
 		});
 		return view;

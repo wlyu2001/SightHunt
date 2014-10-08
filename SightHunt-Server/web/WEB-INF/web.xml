@@ -15,13 +15,18 @@
     </servlet>
 
     <servlet>
-        <servlet-name>list-sights</servlet-name>
-        <servlet-class>com.sighthunt.servlet.sight.ListSightsServlet</servlet-class>
+        <servlet-name>list-sights-by-region</servlet-name>
+        <servlet-class>com.sighthunt.servlet.sight.ListSightsByRegionServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>list-sights-by-user</servlet-name>
+        <servlet-class>com.sighthunt.servlet.sight.ListSightsByUserServlet</servlet-class>
     </servlet>
 
     <servlet>
         <servlet-name>fetch-sight</servlet-name>
-        <servlet-class>com.sighthunt.servlet.sight.FetchSightServlet</servlet-class>
+        <servlet-class>com.sighthunt.servlet.sight.FetchSightsServlet</servlet-class>
     </servlet>
 
     <servlet>
@@ -54,6 +59,11 @@
         <servlet-class>com.sighthunt.servlet.user.LoginServlet</servlet-class>
     </servlet>
 
+    <servlet>
+        <servlet-name>hunt</servlet-name>
+        <servlet-class>com.sighthunt.servlet.sight.HuntServlet</servlet-class>
+    </servlet>
+
     <servlet-mapping>
         <servlet-name>new-sight</servlet-name>
         <url-pattern>/sight/new</url-pattern>
@@ -65,8 +75,8 @@
     </servlet-mapping>
 
     <servlet-mapping>
-        <servlet-name>list-sights</servlet-name>
-        <url-pattern>/sight/list</url-pattern>
+        <servlet-name>list-sights-by-region</servlet-name>
+        <url-pattern>/sight/list_by_region</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
@@ -104,4 +114,13 @@
         <url-pattern>/image/serve</url-pattern>
     </servlet-mapping>
 
+    <servlet-mapping>
+        <servlet-name>list-sights-by-user</servlet-name>
+        <url-pattern>/sight/list_by_user</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>hunt</servlet-name>
+        <url-pattern>/sight/hunt</url-pattern>
+    </servlet-mapping>
 </web-app>

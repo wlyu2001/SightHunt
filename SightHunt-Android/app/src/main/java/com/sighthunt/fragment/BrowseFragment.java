@@ -17,21 +17,47 @@ import com.sighthunt.view.SlidingTabLayout;
 
 import java.util.Locale;
 
-public class BrowseFragment extends BaseFragment {
+public class BrowseFragment extends LocationAwareFragment {
 
 	private SectionsPagerAdapter mSectionsPagerAdapter;
 
+	private static final String ARG_REGION = "arg_region";
+
 	ViewPager mViewPager;
+	public LocationAwareFragment mNewSightsFragment;
+	public LocationAwareFragment mMostVotedSightsFragment;
+	public LocationAwareFragment mMostHuntedSightsFragment;
+
+	private String mRegion;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
+		if (savedInstanceState != null) {
+			mRegion = savedInstanceState.getString(ARG_REGION);
+		}
 	}
 
 	public static BrowseFragment createInstance() {
 		BrowseFragment fragment = new BrowseFragment();
 		return fragment;
+	}
+
+
+	public void onSaveInstanceState(Bundle outState) {
+		outState.putString(ARG_REGION, mRegion);
+		super.onSaveInstanceState(outState);
+	}
+
+	@Override
+	public void onLocationUpdated() {
+		super.onLocationUpdated();
+		if (getRegion() != null && !getRegion().equals(mRegion)) {
+			if (mNewSightsFragment != null) mNewSightsFragment.onLocationUpdated();
+			if (mMostVotedSightsFragment != null) mMostVotedSightsFragment.onLocationUpdated();
+			if (mMostHuntedSightsFragment != null) mMostHuntedSightsFragment.onLocationUpdated();
+			mRegion = getRegion();
+		}
 	}
 
 	@Override
@@ -41,6 +67,7 @@ public class BrowseFragment extends BaseFragment {
 		mSectionsPagerAdapter = new SectionsPagerAdapter(getChildFragmentManager());
 		mViewPager = (ViewPager) view.findViewById(R.id.pager);
 		mViewPager.setAdapter(mSectionsPagerAdapter);
+		mViewPager.setOffscreenPageLimit(2);
 
 		mViewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
 			@Override
@@ -55,11 +82,6 @@ public class BrowseFragment extends BaseFragment {
 		return view;
 	}
 
-	@Override
-	public String getDefaultTitle() {
-		return "Explore";
-	}
-
 	public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
 		public SectionsPagerAdapter(FragmentManager fm) {
@@ -68,10 +90,13 @@ public class BrowseFragment extends BaseFragment {
 
 		@Override
 		public Fragment getItem(int position) {
-			switch(position) {
-				case 0: return new NewSightsFragment();
-				case 1: return new MostVotedSightsFragment();
-				case 2: return new MostHuntedSightsFragment();
+			switch (position) {
+				case 0:
+					return mNewSightsFragment == null ? mNewSightsFragment = new NewSightsFragment() : mNewSightsFragment;
+				case 1:
+					return mMostVotedSightsFragment == null ? mMostVotedSightsFragment = new MostVotedSightsFragment() : mMostVotedSightsFragment;
+				case 2:
+					return mMostHuntedSightsFragment == null ? mMostHuntedSightsFragment = new MostHuntedSightsFragment() : mMostHuntedSightsFragment;
 			}
 			return null;
 		}
@@ -87,11 +112,11 @@ public class BrowseFragment extends BaseFragment {
 			Locale l = Locale.getDefault();
 			switch (position) {
 				case 0:
-					return getString(R.string.title_section1).toUpperCase(l);
+					return getString(R.string.title_new).toUpperCase(l);
 				case 1:
-					return getString(R.string.title_section2).toUpperCase(l);
+					return getString(R.string.title_most_voted).toUpperCase(l);
 				case 2:
-					return getString(R.string.title_section3).toUpperCase(l);
+					return getString(R.string.title_most_hunted).toUpperCase(l);
 			}
 			return null;
 		}

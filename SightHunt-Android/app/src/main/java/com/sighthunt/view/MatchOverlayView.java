@@ -59,6 +59,8 @@ public class MatchOverlayView extends View {
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
 
+		if (mMatches == null) return;
+
 		float imageSize = getHeight() / 2;
 		float offsetX = (getWidth() - getHeight() / 2) / 2;
 

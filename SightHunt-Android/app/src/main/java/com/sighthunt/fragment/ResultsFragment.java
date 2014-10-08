@@ -11,22 +11,28 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.sighthunt.R;
+import com.sighthunt.fragment.browse.MostHuntedSightsFragment;
+import com.sighthunt.fragment.browse.MostVotedSightsFragment;
+import com.sighthunt.fragment.browse.NewSightsFragment;
+import com.sighthunt.fragment.result.MyCreatedFragment;
+import com.sighthunt.fragment.result.MyHuntedFragment;
 import com.sighthunt.view.SlidingTabLayout;
 
 import java.util.Locale;
 
-public class ResultsFragment extends BaseFragment {
+public class ResultsFragment extends Fragment {
 
 	SectionsPagerAdapter mSectionsPagerAdapter;
 
 	ViewPager mViewPager;
 
+	public Fragment mMyCreatedFragment;
+	public Fragment mMyHuntedFragment;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
 	}
-
 
 	public static ResultsFragment createInstance() {
 		ResultsFragment fragment = new ResultsFragment();
@@ -35,7 +41,7 @@ public class ResultsFragment extends BaseFragment {
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		final View view = inflater.inflate(R.layout.fragment_list, container, false);
+		final View view = inflater.inflate(R.layout.fragment_results, container, false);
 		mSectionsPagerAdapter = new SectionsPagerAdapter(getChildFragmentManager());
 		mViewPager = (ViewPager) view.findViewById(R.id.pager);
 		mViewPager.setAdapter(mSectionsPagerAdapter);
@@ -53,11 +59,6 @@ public class ResultsFragment extends BaseFragment {
 		return view;
 	}
 
-	@Override
-	public String getDefaultTitle() {
-		return "Results";
-	}
-
 	public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
 		public SectionsPagerAdapter(FragmentManager fm) {
@@ -66,9 +67,14 @@ public class ResultsFragment extends BaseFragment {
 
 		@Override
 		public Fragment getItem(int position) {
-			// getItem is called to instantiate the fragment for the given page.
-			// Return a PlaceholderFragment (defined as a static inner class below).
-			return PlaceholderFragment.newInstance(position + 1);
+			switch (position) {
+				case 0:
+					return mMyCreatedFragment == null ? mMyCreatedFragment = new MyCreatedFragment() : mMyCreatedFragment;
+				case 1:
+					return mMyHuntedFragment == null ? mMyHuntedFragment = new MyHuntedFragment() : mMyHuntedFragment;
+				}
+			return null;
+
 		}
 
 		@Override
@@ -82,9 +88,9 @@ public class ResultsFragment extends BaseFragment {
 			Locale l = Locale.getDefault();
 			switch (position) {
 				case 0:
-					return getString(R.string.title_section1).toUpperCase(l);
+					return getString(R.string.title_created).toUpperCase(l);
 				case 1:
-					return getString(R.string.title_section2).toUpperCase(l);
+					return getString(R.string.title_hunted).toUpperCase(l);
 			}
 			return null;
 		}
@@ -110,8 +116,8 @@ public class ResultsFragment extends BaseFragment {
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 								 Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_placeholder, container, false);
-			TextView textView = (TextView)rootView.findViewById(R.id.section_label);
-			textView.setText("SECTION NUMBER "+ getArguments().getInt(ARG_SECTION_NUMBER));
+			TextView textView = (TextView) rootView.findViewById(R.id.section_label);
+			textView.setText("SECTION NUMBER " + getArguments().getInt(ARG_SECTION_NUMBER));
 			return rootView;
 		}
 	}

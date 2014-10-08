@@ -6,6 +6,4 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class BaseFragment extends Fragment {
 
-	@NotNull
-	public abstract String getDefaultTitle();
 }

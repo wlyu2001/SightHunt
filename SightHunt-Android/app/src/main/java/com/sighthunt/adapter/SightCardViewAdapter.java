@@ -28,8 +28,7 @@ public class SightCardViewAdapter extends CursorAdapter {
 		if (cardView == null)
 			cardView = CardView.createInstance(context);
 
-		Sight sight = new Sight();
-		sight.bindCursor(cursor);
+		Sight sight = Sight.fromCursor(cursor);
 
 		cardView.setImage(ImageHelper.getImageUrl(sight.thumbKey));
 	}

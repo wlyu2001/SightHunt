@@ -3,11 +3,9 @@ package com.sighthunt.fragment.browse;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,65 +14,26 @@ import android.widget.GridView;
 
 import com.sighthunt.R;
 import com.sighthunt.activity.HuntActivity;
-import com.sighthunt.activity.LoginActivity;
 import com.sighthunt.adapter.SightCardViewAdapter;
 import com.sighthunt.data.Contract;
 import com.sighthunt.data.model.Sight;
+import com.sighthunt.fragment.LocationAwareFragment;
 import com.sighthunt.network.model.SightSortType;
 
-public class NewSightsFragment extends Fragment {
+import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
+import uk.co.senab.actionbarpulltorefresh.library.Options;
+import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
+import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 
+public class NewSightsFragment extends BaseBrowseSightsFragment {
 
-	SightCardViewAdapter mAdapter;
-
-
-	private LoaderManager.LoaderCallbacks<Cursor> getLoaderCallbacks(final String region) {
-		return new LoaderManager.LoaderCallbacks<Cursor>() {
-			@Override
-			public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-
-				return new CursorLoader(getActivity(),
-						Contract.Sight.getFetchSightsContentUri(region, SightSortType.ByRegion.NEW.toString()),
-						Sight.PROJECTION, null, null, null);
-			}
-
-			@Override
-			public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-				mAdapter.swapCursor(cursor);
-			}
-
-			@Override
-			public void onLoaderReset(Loader<Cursor> cursorLoader) {
-
-			}
-		};
+	@Override
+	public String getType() {
+		return SightSortType.NEW;
 	}
 
 	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-
-		String region = "Stockholm";
-		getLoaderManager().restartLoader(R.id.loader_new_sights, null, getLoaderCallbacks(region));
-	}
-
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		final View view = inflater.inflate(R.layout.fragment_new_sights, container, false);
-
-		GridView gridView = (GridView) view.findViewById(R.id.gridView);
-
-		gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				Cursor cursor = (Cursor) mAdapter.getItem(position);
-				startActivity(new Intent(getActivity(), HuntActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-			}
-		});
-
-		mAdapter = new SightCardViewAdapter(getActivity());
-		gridView.setAdapter(mAdapter);
-
-		return view;
+	public int getLoaderId() {
+		return R.id.loader_new_sights;
 	}
 }

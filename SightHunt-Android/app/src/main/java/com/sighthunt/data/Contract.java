@@ -26,8 +26,10 @@ public final class Contract {
 
 		public static final String CREATOR = "creator";
 
+		// client time
 		public static final String TIME_CREATED = "time_created";
 
+		// server time
 		public static final String LAST_MODIFIED = "last_modified";
 
 		public static final String REGION = "region";
@@ -40,16 +42,32 @@ public final class Contract {
 
 		public static final String HUNTS = "hunts";
 
-		public static final Uri getFetchSightsContentUri(String region, String type) {
-			return Uri.parse(CONTENT_URI + "/sight/" + region + "/" + type);
+		public static final Uri getFetchSightsByRegionRemoteUri(String region, String type, int offset, int limit) {
+			return Uri.parse(CONTENT_URI + "/sight_by_region/" + region + "/type/" + type + "/remote/offset/" + offset + "/limit/" + limit);
 		}
 
-		public static final Uri getCreateSightClientUri() {
-			return Uri.parse(CONTENT_URI+"/new_sight/client");
+		public static final Uri getFetchSightsByRegionLocalUri(String region, String type) {
+			return Uri.parse(CONTENT_URI + "/sight_by_region/" + region + "/type/" + type + "/local");
 		}
 
-		public static final Uri getCreateSightServerUri() {
-			return Uri.parse(CONTENT_URI+"/new_sight/server");
+		public static final Uri getFetchSightsByUserRemoteUri(String user, String type, int offset, int limit) {
+			return Uri.parse(CONTENT_URI + "/sight_by_user/" + user + "/type/" + type + "/remote/offset/" + offset + "/limit/" + limit);
+		}
+
+		public static final Uri getFetchSightsByUserLocalUri(String user, String type) {
+			return Uri.parse(CONTENT_URI + "/sight_by_user/" + user + "/type/" + type + "/local");
+		}
+
+		public static final Uri getCreateSightRemoteUri() {
+			return Uri.parse(CONTENT_URI + "/create_sight/remote");
+		}
+
+		public static final Uri getCreateSightLocalUri() {
+			return Uri.parse(CONTENT_URI + "/create_sight/local");
+		}
+
+		public static final Uri getFetchSightByKeyUri(String key) {
+			return Uri.parse(CONTENT_URI + "/sight/" + key);
 		}
 
 		public static final ContentValues createContentValues(com.sighthunt.network.model.Sight sight) {
@@ -108,6 +126,30 @@ public final class Contract {
 
 		public static final String FB = "fb";
 
+	}
+
+	public static final class Hunt implements BaseColumns {
+
+
+		public static final String TABLE_NAME = "hunt";
+
+		public static final String USER = "user";
+
+		public static final String SIGHT = "sight";
+
+		public static final String VOTE = "vote";
+
+		public static final Uri getInsertHuntLocalUri() {
+			return Uri.parse(CONTENT_URI + "/hunt/local");
+		}
+
+		public static final Uri getInsertHuntRemoteUri() {
+			return Uri.parse(CONTENT_URI + "/hunt/remote");
+		}
+
+		public static Uri getCheckHuntUri(String user, String sight) {
+			return Uri.parse(CONTENT_URI + "/hunt/" + user + "/sight/" + sight);
+		}
 	}
 
 }

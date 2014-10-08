@@ -4,4 +4,12 @@
     <item name="loader_most_voted_sights" type="id"/>
     <item name="loader_new_sights" type="id"/>
 
+
+    <item name="loader_my_created_sights" type="id"/>
+    <item name="loader_my_hunted_sights" type="id"/>
+
+
+    <item name="loader_check_hunt" type="id"/>
+    <item name="loader_sight" type="id"/>
+
 </resources>

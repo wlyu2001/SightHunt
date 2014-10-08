@@ -2,36 +2,9 @@ package com.sighthunt.network.model;
 
 public class SightSortType {
 
-	public enum ByRegion {
-		NEW("new"),
-		MOST_VOTED("most_voted"),
-		MOST_HUNTED("most_hunted");
-
-		private final String mText;
-
-		private ByRegion(final String text) {
-			mText = text;
-		}
-
-		@Override
-		public String toString() {
-			return mText;
-		}
-	}
-
-	public enum ByUser {
-		NEW("created"),
-		MOST_VOTED("hunted");
-
-		private final String mText;
-
-		private ByUser(final String text) {
-			mText = text;
-		}
-
-		@Override
-		public String toString() {
-			return mText;
-		}
-	}
+	public static final String NEW = "new";
+	public static final String MOST_VOTED = "most_voted";
+	public static final String MOST_HUNTED = "most_hunted";
+	public static final String HUNTED_BY = "hunted_by";
+	public static final String CREATED_BY = "created_by";
 }

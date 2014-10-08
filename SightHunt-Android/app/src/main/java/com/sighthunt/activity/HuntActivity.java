@@ -1,26 +1,26 @@
 package com.sighthunt.activity;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.view.View;
 import android.widget.Button;
 
 import com.sighthunt.R;
+import com.sighthunt.data.Contract;
 import com.sighthunt.fragment.SightFragment;
-import com.sighthunt.location.LocationHelper;
 
-public class HuntActivity extends FragmentActivity {
-
-	LocationHelper mLocationHelper;
+public class HuntActivity extends LocationAwareActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_hunt);
 
-		mLocationHelper = new LocationHelper(this);
+		Bundle args = getIntent().getExtras();
+		String key = args.getString(Contract.Sight.KEY);
 
-		SightFragment fragment = new SightFragment();
+		SightFragment fragment = SightFragment.createInstance(key);
 		getSupportFragmentManager().beginTransaction()
 				.replace(R.id.container, fragment)
 				.commit();
@@ -34,25 +34,25 @@ public class HuntActivity extends FragmentActivity {
 		});
 	}
 
-	protected void onStart() {
-		super.onStart();
-		mLocationHelper.onStart();
-	}
 	@Override
-	protected void onStop() {
-		mLocationHelper.onStop();
-		super.onStop();
+	public void onLocationConnected() {
+
 	}
 
 	@Override
-	protected void onResume() {
-		super.onResume();
-		mLocationHelper.onResume();
+	public void onLocationUpdated() {
+
 	}
 
 	@Override
-	protected void onPause() {
-		super.onPause();
-		mLocationHelper.onPause();
+	public void onLocationDisconnected() {
+
 	}
+
+	public static Intent getIntent(Context context, String key) {
+		Intent intent = new Intent(context, HuntActivity.class);
+		intent.putExtra(Contract.Sight.KEY, key);
+		return intent;
+	}
+
 }

@@ -6,15 +6,64 @@
               android:orientation="vertical">
 
     <LinearLayout
+        android:id="@+id/layoutSuccess"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:gravity="center">
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Success or fail"/>
+            android:text="Success"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/buttonUpVote"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Up vote"/>
+
+            <Button
+                android:id="@+id/buttonDownVote"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Down vote"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layoutFailed"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Failed"/>
+
+        <Button
+            android:id="@+id/buttonTryAgain"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Try again"/>
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical">
     </LinearLayout>
 
     <RelativeLayout
@@ -59,19 +108,50 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:gravity="center">
+        android:orientation="vertical">
 
-        <Button
-            android:id="@+id/button_up_vote"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Up vote"/>
+            android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/button_down_vote"
-            android:layout_width="wrap_content"
+            <Button
+                android:id="@+id/button_detector"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Detector"/>
+
+            <Button
+                android:id="@+id/button_descriptor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Descriptor"/>
+
+            <Button
+                android:id="@+id/button_matcher"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Matcher"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Down vote"/>
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/text_threshold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="Threshold"/>
+
+            <Button
+                android:id="@+id/button_compute"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Compute"/>
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

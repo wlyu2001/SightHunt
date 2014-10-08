@@ -2,32 +2,31 @@ package com.sighthunt.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
-import android.util.Log;
+import android.support.v4.app.FragmentTransaction;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
 import com.sighthunt.R;
-import com.sighthunt.fragment.BaseFragment;
 import com.sighthunt.fragment.BrowseFragment;
+import com.sighthunt.fragment.LocationAwareFragment;
 import com.sighthunt.fragment.ResultsFragment;
 import com.sighthunt.inject.Injector;
-import com.sighthunt.location.LocationHelper;
 import com.sighthunt.util.AccountUtils;
 
 import org.opencv.android.OpenCVLoader;
 
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends LocationAwareActivity {
 
 	View mButtonList;
 	View mButtonBrowse;
 	View mButtonCam;
 
-	BaseFragment mBrowseFragment;
-	BaseFragment mListFragment;
+	LocationAwareFragment mBrowseFragment;
+	private String TAG_BROWSE_FRAGMENT = "tag_browse_fragment";
+	private String TAG_RESULT_FRAGMENT = "tag_result_fragment";
+	ResultsFragment mResultsFragment;
 
-	LocationHelper mLocationHelper;
 	AccountUtils mAccountUtils = Injector.get(AccountUtils.class);
 
 	@Override
@@ -35,32 +34,28 @@ public class MainActivity extends FragmentActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		mLocationHelper = new LocationHelper(this);
-
-		Log.i("mainactivity", "created");
-
 		getActionBar().setIcon(android.R.color.transparent);
-
-		showFragment(new BrowseFragment());
 
 		mButtonList = findViewById(R.id.button_list);
 		mButtonBrowse = findViewById(R.id.button_browse);
 		mButtonCam = findViewById(R.id.button_cam);
 
 		mBrowseFragment = BrowseFragment.createInstance();
-		mListFragment = ResultsFragment.createInstance();
+		mResultsFragment = ResultsFragment.createInstance();
+
+		showBrowseFragment();
 
 		mButtonList.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				showFragment(mListFragment);
+				showListFragment();
 			}
 		});
 
 		mButtonBrowse.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				showFragment(mBrowseFragment);
+				showBrowseFragment();
 			}
 		});
 
@@ -90,11 +85,42 @@ public class MainActivity extends FragmentActivity {
 		}
 	}
 
-	private void showFragment(BaseFragment fragment) {
-		getSupportFragmentManager().beginTransaction()
-				.replace(R.id.container, fragment, null)
-				.commit();
-		getActionBar().setTitle(fragment.getDefaultTitle().toUpperCase());
+	boolean mBrowseShown;
+
+	private void showBrowseFragment() {
+		FragmentTransaction ft =
+				getSupportFragmentManager().beginTransaction();
+		if (mBrowseFragment.isAdded()) {
+			ft.show(mBrowseFragment);
+		} else {
+			ft.add(R.id.container, mBrowseFragment, TAG_BROWSE_FRAGMENT);
+		}
+		if (mResultsFragment.isAdded()) {
+			ft.hide(mResultsFragment);
+		}
+		ft.commit();
+
+		getActionBar().setTitle(getString(R.string.title_explore).toUpperCase() +
+				(getLocationHelper().isConnected() ? "  " + getLocationHelper().getRegion() : ""));
+		mBrowseShown = true;
+
+	}
+
+	private void showListFragment() {
+		FragmentTransaction ft =
+				getSupportFragmentManager().beginTransaction();
+		if (mResultsFragment.isAdded()) {
+			ft.show(mResultsFragment);
+		} else {
+			ft.add(R.id.container, mResultsFragment, TAG_RESULT_FRAGMENT);
+		}
+		if (mBrowseFragment.isAdded()) {
+			ft.hide(mBrowseFragment);
+		}
+		ft.commit();
+
+		getActionBar().setTitle(getString(R.string.title_results).toUpperCase());
+		mBrowseShown = false;
 	}
 
 	@Override
@@ -126,28 +152,24 @@ public class MainActivity extends FragmentActivity {
 		return super.onOptionsItemSelected(item);
 	}
 
-	protected void onStart() {
-		super.onStart();
-		mLocationHelper.onStart();
+	@Override
+	public void onLocationConnected() {
 	}
 
 	@Override
-	protected void onStop() {
-		super.onStop();
-		mLocationHelper.onStop();
+	public void onLocationUpdated() {
+		if (mBrowseShown) {
+			getActionBar().setTitle(getString(R.string.title_explore).toUpperCase() +
+					(getLocationHelper().isConnected() ? "  " + getLocationHelper().getRegion() : ""));
+		}
+		if (mBrowseFragment != null) {
+			mBrowseFragment.onLocationUpdated();
+		}
 	}
 
 	@Override
-	protected void onResume() {
-		super.onResume();
-		mLocationHelper.onResume();
-	}
+	public void onLocationDisconnected() {
 
-	@Override
-	protected void onPause() {
-		super.onPause();
-		mLocationHelper.onPause();
 	}
-
 
 }

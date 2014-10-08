@@ -11,6 +11,7 @@ import android.util.Log;
 
 import com.facebook.Session;
 import com.sighthunt.inject.Injectable;
+import com.sighthunt.network.model.User;
 
 public class AccountUtils implements Injectable {
 

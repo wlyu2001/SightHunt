@@ -10,6 +10,10 @@ import android.widget.EditText;
 
 import com.sighthunt.R;
 import com.sighthunt.activity.LoginActivity;
+import com.sighthunt.util.PasswordHash;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class SignUpFragment extends Fragment {
 
@@ -51,7 +55,8 @@ public class SignUpFragment extends Fragment {
 				String password = mEditTextPassword.getText().toString();
 				String email = mEditTextEmail.getText().toString();
 				String nick = mEditTextNick.getText().toString();
-				mLoginActivity.signup(username, password, email, nick);
+
+				mLoginActivity.signup(username, PasswordHash.hash(password), email, nick);
 			}
 		});
 		return view;

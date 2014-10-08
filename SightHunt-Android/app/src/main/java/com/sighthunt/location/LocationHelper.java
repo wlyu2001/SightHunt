@@ -1,10 +1,13 @@
 package com.sighthunt.location;
 
+import android.content.Context;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.widget.Toast;
 
@@ -14,8 +17,14 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
+import com.sighthunt.activity.LocationAwareActivity;
 import com.sighthunt.dialog.DialogFactory;
 import com.sighthunt.dialog.DialogPresenter;
+import com.sighthunt.util.PreferenceUtil;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 
 public class LocationHelper implements
 		GooglePlayServicesClient.ConnectionCallbacks,
@@ -28,12 +37,30 @@ public class LocationHelper implements
 	private static final long FASTEST_INTERVAL = 10 * 60 * 1000;
 	private boolean mUpdatesRequested;
 	private LocationRequest mLocationRequest;
+	private boolean mIsConnected;
 
-	FragmentActivity mActivity;
-	LocationClient mLocationClient;
+	private FragmentActivity mActivity;
+	private LocationClient mLocationClient;
 	private SharedPreferences mPrefs;
 
-	public LocationHelper(FragmentActivity activity) {
+	private Geocoder geocoder;
+
+	private OnLocationObserver mObserver;
+
+	public interface OnLocationObserver {
+		public void onLocationConnected();
+
+		public void onLocationUpdated();
+
+		public void onLocationDisconnected();
+	}
+
+	public boolean isConnected() {
+		return mIsConnected;
+	}
+
+	public LocationHelper(LocationAwareActivity activity) {
+		mObserver = activity;
 		final int result = GooglePlayServicesUtil.isGooglePlayServicesAvailable(activity);
 		if (result != ConnectionResult.SUCCESS) {
 			Toast.makeText(activity, "Google Play service is not available (status=" + result + ")", Toast.LENGTH_LONG).show();
@@ -41,12 +68,13 @@ public class LocationHelper implements
 		}
 		mActivity = activity;
 		mLocationClient = new LocationClient(mActivity, this, this);
-		mPrefs = PreferenceManager.getDefaultSharedPreferences(mActivity);
+		mPrefs = PreferenceUtil.getSettingSharedPreferences(mActivity);
 
 		mLocationRequest = LocationRequest.create();
 		mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 		mLocationRequest.setInterval(UPDATE_INTERVAL);
 		mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
+		geocoder = new Geocoder(activity, Locale.getDefault());
 	}
 
 	public void onStart() {
@@ -74,14 +102,24 @@ public class LocationHelper implements
 
 	@Override
 	public void onConnected(Bundle bundle) {
-		if (mUpdatesRequested) {
-			mLocationClient.requestLocationUpdates(mLocationRequest, this);
+
+		LocationManager locationManager = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE);
+		if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+			DialogPresenter.showDialog(mActivity.getSupportFragmentManager(), DialogFactory.getLocationDisabledDialog(mActivity), "Location Disabled");
 		}
+
+		//if (mUpdatesRequested) {
+		mLocationClient.requestLocationUpdates(mLocationRequest, this);
+		//}
+		mIsConnected = true;
+		mObserver.onLocationConnected();
+
 	}
 
 	@Override
 	public void onDisconnected() {
-
+		mIsConnected = false;
+		mObserver.onLocationDisconnected();
 	}
 
 	@Override
@@ -95,14 +133,34 @@ public class LocationHelper implements
 		} else {
 			DialogPresenter.showDialog(mActivity.getSupportFragmentManager(), DialogFactory.getConnectionFailedDialog(mActivity), "Connection failed");
 		}
+		mIsConnected = false;
 	}
 
-	public Location getCurrentLocation() {
-		return mLocationClient.getLastLocation();
+	public Location getLocation() {
+		return mLocation;
 	}
+
+	String mRegion;
+	Location mLocation;
 
 	@Override
 	public void onLocationChanged(Location location) {
+		mLocation = location;
+		if (location != null) {
+			try {
+				List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+				if (addresses.size() > 0) {
+					mRegion = addresses.get(0).getLocality() + ", " + addresses.get(0).getCountryName();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 
+		mObserver.onLocationUpdated();
+	}
+
+	public String getRegion() {
+		return mRegion;
 	}
 }

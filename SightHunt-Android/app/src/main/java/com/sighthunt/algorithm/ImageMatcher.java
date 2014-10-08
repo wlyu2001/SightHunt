@@ -21,6 +21,7 @@ public class ImageMatcher {
 	FeatureDetector mFeatureDetector;
 	DescriptorExtractor mDescriptorExtractor;
 	DescriptorMatcher mMatcher;
+	float mThreshold;
 
 	MatOfKeyPoint mKeyPoints1;
 	public MatOfKeyPoint getKeyPoints1() {
@@ -44,10 +45,11 @@ public class ImageMatcher {
 	}
 
 
-	public ImageMatcher() {
-		mFeatureDetector = FeatureDetector.create(FeatureDetector.SURF);
-		mDescriptorExtractor = DescriptorExtractor.create(DescriptorExtractor.SURF);
-		mMatcher = DescriptorMatcher.create(DescriptorMatcher.FLANNBASED);
+	public ImageMatcher(int featureDetector, int descriptorExtractor, int descriptorMatcher, float threshold) {
+		mFeatureDetector = FeatureDetector.create(featureDetector);
+		mDescriptorExtractor = DescriptorExtractor.create(descriptorExtractor);
+		mMatcher = DescriptorMatcher.create(descriptorMatcher);
+		mThreshold = threshold;
 	}
 
 	public float getImageMatchingScore(File file1, File file2) {
@@ -70,9 +72,8 @@ public class ImageMatcher {
 		DMatch[] matchesArray = matches.toArray();
 
 		mMatches = new ArrayList<DMatch>();
-		double dist_threshold = 0.1;
 		for (int i = 0; i < descriptor1.rows(); i++) {
-			if (matchesArray[i].distance <= dist_threshold) {
+			if (matchesArray[i].distance <= mThreshold) {
 				mMatches.add(matchesArray[i]);
 			}
 		}
