@@ -26,7 +26,7 @@ public class HuntCamFragment extends LocationAwareFragment {
 		final View view = inflater.inflate(R.layout.fragment_hunt_cam, container, false);
 
 		Bundle args = getArguments();
-		final String key = args.getString(Contract.Sight.KEY);
+		final long key = args.getLong(Contract.Sight.KEY);
 
 		ImageView imageView = (ImageView) view.findViewById(R.id.image_view);
 		imageView.setAlpha(0.5f);
@@ -52,10 +52,10 @@ public class HuntCamFragment extends LocationAwareFragment {
 		return view;
 	}
 
-	public static HuntCamFragment createInstance(String key) {
+	public static HuntCamFragment createInstance(long key) {
 		HuntCamFragment fragment = new HuntCamFragment();
 		Bundle args = new Bundle();
-		args.putString(Contract.Sight.KEY, key);
+		args.putLong(Contract.Sight.KEY, key);
 		fragment.setArguments(args);
 		return fragment;
 	}

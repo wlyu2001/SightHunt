@@ -25,7 +25,7 @@
     </servlet>
 
     <servlet>
-        <servlet-name>fetch-sight</servlet-name>
+        <servlet-name>fetch-sights</servlet-name>
         <servlet-class>com.sighthunt.servlet.sight.FetchSightsServlet</servlet-class>
     </servlet>
 
@@ -80,7 +80,7 @@
     </servlet-mapping>
 
     <servlet-mapping>
-        <servlet-name>fetch-sight</servlet-name>
+        <servlet-name>fetch-sights</servlet-name>
         <url-pattern>/sight/fetch</url-pattern>
     </servlet-mapping>
 

@@ -32,7 +32,6 @@ public class ListSightsByRegionServlet extends HttpServlet {
 
 		String region = req.getParameter("region");
 		String type = req.getParameter("type");
-		long lastModified = Long.parseLong(req.getParameter("last_modified"));
 		int offset = Integer.parseInt(req.getParameter("offset"));
 		int limit = Integer.parseInt(req.getParameter("limit"));
 
@@ -53,10 +52,6 @@ public class ListSightsByRegionServlet extends HttpServlet {
 
 		PreparedQuery preparedQuery = datastore.prepare(query);
 
-
-		// -------------------------
-
-		MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
 		List<Long> sightIds = new ArrayList<Long>();
 
 		FetchOptions fo = FetchOptions.Builder.withOffset(offset).limit(limit);

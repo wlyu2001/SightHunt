@@ -66,7 +66,7 @@ public final class Contract {
 			return Uri.parse(CONTENT_URI + "/create_sight/local");
 		}
 
-		public static final Uri getFetchSightByKeyUri(String key) {
+		public static final Uri getFetchSightByKeyUri(long key) {
 			return Uri.parse(CONTENT_URI + "/sight/" + key);
 		}
 
@@ -147,8 +147,8 @@ public final class Contract {
 			return Uri.parse(CONTENT_URI + "/hunt/remote");
 		}
 
-		public static Uri getCheckHuntUri(String user, String sight) {
-			return Uri.parse(CONTENT_URI + "/hunt/" + user + "/sight/" + sight);
+		public static Uri getCheckHuntUri(String user, long sightId) {
+			return Uri.parse(CONTENT_URI + "/hunt/" + user + "/sight/" + sightId);
 		}
 	}
 

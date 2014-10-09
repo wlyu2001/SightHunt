@@ -70,7 +70,7 @@ public class SightFragment extends Fragment {
 
 
 		Bundle args = getArguments();
-		final String key = args.getString(Contract.Sight.KEY);
+		final long key = args.getLong(Contract.Sight.KEY);
 
 		mButton = (Button) view.findViewById(R.id.go_to_cam_button);
 		mButton.setOnClickListener(new View.OnClickListener() {
@@ -140,10 +140,10 @@ public class SightFragment extends Fragment {
 		});
 	}
 
-	public static SightFragment createInstance(String key) {
+	public static SightFragment createInstance(long key) {
 		SightFragment fragment = new SightFragment();
 		Bundle args = new Bundle();
-		args.putString(Contract.Sight.KEY, key);
+		args.putLong(Contract.Sight.KEY, key);
 		fragment.setArguments(args);
 		return fragment;
 	}

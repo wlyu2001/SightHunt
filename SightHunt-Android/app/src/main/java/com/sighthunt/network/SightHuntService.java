@@ -16,9 +16,11 @@ import com.sighthunt.network.model.SightSortType;
 import com.sighthunt.util.AccountUtils;
 import com.sighthunt.util.ImageFiles;
 import com.sighthunt.util.PreferenceUtil;
+import com.sighthunt.util.SightsKeeper;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit.Callback;
@@ -46,6 +48,7 @@ public class SightHuntService extends Service {
 
 	ApiManager mApiManager = Injector.get(ApiManager.class);
 	AccountUtils mAccountUtils = Injector.get(AccountUtils.class);
+	SightsKeeper mSightsKeeper = Injector.get(SightsKeeper.class);
 
 
 	@Override
@@ -76,18 +79,18 @@ public class SightHuntService extends Service {
 	}
 
 	private void insertHunt(Bundle args) {
-		final String key = args.getString(Contract.Hunt.SIGHT);
+		final long sightId = args.getLong(Contract.Hunt.SIGHT);
 		final String username = args.getString(Contract.Hunt.USER);
 		final int vote = args.getInt(Contract.Hunt.VOTE);
 
-		mApiManager.getSightService().huntSight(username, key, vote, new Callback<Integer>() {
+		mApiManager.getSightService().huntSight(username, sightId, vote, new Callback<Integer>() {
 			@Override
 			public void success(Integer result, Response response) {
 
 				if (result > 0) {
 					ContentValues values = new ContentValues();
 					values.put(Contract.Hunt.USER, username);
-					values.put(Contract.Hunt.SIGHT, key);
+					values.put(Contract.Hunt.SIGHT, sightId);
 					values.put(Contract.Hunt.VOTE, vote);
 					getContentResolver().insert(Contract.Hunt.getInsertHuntLocalUri(), values);
 					getContentResolver().notifyChange(Contract.Hunt.getInsertHuntRemoteUri(), null);
@@ -118,7 +121,7 @@ public class SightHuntService extends Service {
 			@Override
 			public void success(Sight s, Response response) {
 				if (s == null) return;
-				Log.i("Sight key", s.key);
+				Log.i("Sight key", s.key + "");
 				String uploadUrl = s.image_key;
 				mApiManager.uploadImage(uploadUrl, s.key, ImageFiles.NEW_IMAGE.getAbsolutePath(),
 						ImageFiles.NEW_IMAGE_THUMB.getAbsolutePath(), new Callback<Sight>() {
@@ -141,21 +144,6 @@ public class SightHuntService extends Service {
 		});
 	}
 
-	private long getRegionLastModified(String type, String region) {
-		return mPrefs.getLong(PREF_LAST_MODIFIED_PREFIX + type + "_region_" + region, 0);
-	}
-
-	private void saveRegionLastModified(long lastModified, String type, String region) {
-		mPrefs.edit().putLong(PREF_LAST_MODIFIED_PREFIX + type + "_region_" + region, lastModified).commit();
-	}
-
-	private long getUserLastModified(String type, String user) {
-		return mPrefs.getLong(PREF_LAST_MODIFIED_PREFIX + type + "_user_" + user, 0);
-	}
-
-	private void saveUserLastModified(long lastModified, String type, String user) {
-		mPrefs.edit().putLong(PREF_LAST_MODIFIED_PREFIX + type + "_user_" + user, lastModified).commit();
-	}
 
 	private void fetchSightsByRegion(Bundle args) {
 		final String region = args.getString(Contract.Sight.REGION);
@@ -163,25 +151,26 @@ public class SightHuntService extends Service {
 		final int limit = args.getInt(ARG_LIMIT);
 		final int offset = args.getInt(ARG_OFFSET);
 
-		final long lastModified = getRegionLastModified(type, region);
-
 		Log.i("SightHuntService", "FetchSightsByRegion");
 
-		mApiManager.getSightService().getSightsByRegion(region, lastModified, type, offset, limit, new Callback<List<Sight>>() {
+		mApiManager.getSightService().getSightsByRegion(region, type, offset, limit, new Callback<List<Long>>() {
 			@Override
-			public void success(List<Sight> sights, Response response) {
+			public void success(List<Long> sightIds, Response response) {
 
-				long newLastModified = Long.MIN_VALUE;
-				for (Sight sight : sights) {
-					if (sight.last_modified > lastModified)
-						newLastModified = sight.last_modified;
-					ContentValues values = Contract.Sight.createContentValues(sight);
-					getContentResolver().insert(Contract.Sight.getCreateSightLocalUri(), values);
-				}
-				if (sights.size() > 0) {
-					saveRegionLastModified(newLastModified, type, region);
-				}
-				getContentResolver().notifyChange(Contract.Sight.getFetchSightsByRegionLocalUri(region, type), null);
+				fetchSightsNotInCache(sightIds, new Callback<List<Sight>>() {
+					@Override
+					public void success(List<Sight> sights, Response response) {
+						for (Sight sight : sights) {
+							insertSightLocally(sight);
+						}
+						getContentResolver().notifyChange(Contract.Sight.getFetchSightsByRegionLocalUri(region, type), null);
+					}
+
+					@Override
+					public void failure(RetrofitError error) {
+
+					}
+				});
 			}
 
 			@Override
@@ -189,6 +178,20 @@ public class SightHuntService extends Service {
 
 			}
 		});
+	}
+
+	private void fetchSightsNotInCache(List<Long> sightIds, Callback<List<Sight>> callback) {
+		List<Long> sightsToFetch = new ArrayList<Long>();
+		for (long sightId : sightIds) {
+			if (!mSightsKeeper.containSightId(sightId)) {
+				sightsToFetch.add(sightId);
+			}
+		}
+		if (sightsToFetch.size() > 0) {
+			mApiManager.getSightService().getSights(sightsToFetch, callback);
+		} else {
+		callback.success(new ArrayList<Sight>, null);
+		}
 	}
 
 	private void fetchSightsByUser(Bundle args) {
@@ -197,25 +200,26 @@ public class SightHuntService extends Service {
 		final int limit = args.getInt(ARG_LIMIT);
 		final int offset = args.getInt(ARG_OFFSET);
 
-		final long lastModified = getUserLastModified(type, user);
-		mApiManager.getSightService().getSightsByUser(user, lastModified, type, offset, limit, new Callback<List<Sight>>() {
+		mApiManager.getSightService().getSightsByUser(user, type, offset, limit, new Callback<List<Long>>() {
 			@Override
-			public void success(List<Sight> sights, Response response) {
-				long lastModified = Long.MIN_VALUE;
-				for (Sight sight : sights) {
-					if (sight.last_modified > lastModified)
-						lastModified = sight.last_modified;
-					ContentValues values = Contract.Sight.createContentValues(sight);
-					if (SightSortType.HUNTED_BY.equals(type)) {
-						insertHuntLocally(mAccountUtils.getUsername(), sight.key);
+			public void success(List<Long> sightIds, Response response) {
+				fetchSightsNotInCache(sightIds, new Callback<List<Sight>>() {
+					@Override
+					public void success(List<Sight> sights, Response response) {
+						for (Sight sight : sights) {
+							if (SightSortType.HUNTED_BY.equals(type)) {
+								insertHuntLocally(mAccountUtils.getUsername(), sight.key);
+							}
+							insertSightLocally(sight);
+						}
+						getContentResolver().notifyChange(Contract.Sight.getFetchSightsByUserLocalUri(user, type), null);
 					}
-					getContentResolver().insert(Contract.Sight.getCreateSightLocalUri(), values);
-				}
-				if (sights.size() > 0) {
-					saveUserLastModified(lastModified, type, user);
-				}
-				// notify the local uri..
-				getContentResolver().notifyChange(Contract.Sight.getFetchSightsByUserLocalUri(user, type), null);
+
+					@Override
+					public void failure(RetrofitError error) {
+
+					}
+				});
 			}
 
 			@Override
@@ -225,11 +229,18 @@ public class SightHuntService extends Service {
 		});
 	}
 
-	private void insertHuntLocally(String user, String sight) {
+	private void insertHuntLocally(String user, long sightId) {
 		ContentValues values = new ContentValues();
 		values.put(Contract.Hunt.USER, user);
-		values.put(Contract.Hunt.SIGHT, sight);
+		values.put(Contract.Hunt.SIGHT, sightId);
 		getContentResolver().insert(Contract.Hunt.getInsertHuntLocalUri(), values);
+	}
+
+	private void insertSightLocally(Sight sight) {
+
+		ContentValues values = Contract.Sight.createContentValues(sight);
+		getContentResolver().insert(Contract.Sight.getCreateSightLocalUri(), values);
+		mSightsKeeper.addCachedSightId(sight.key);
 	}
 
 	public static Intent getFetchSightsByRegionIntent(Context context, @NotNull String region, String type, int offset, int limit) {

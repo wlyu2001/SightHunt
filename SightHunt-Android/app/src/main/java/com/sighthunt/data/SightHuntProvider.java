@@ -61,14 +61,13 @@ public class SightHuntProvider extends ContentProvider {
 
 	@Override
 	public boolean onCreate() {
-		SightHuntDatabase db = new SightHuntDatabase(getContext());
+		SightHuntDatabaseHelper db = new SightHuntDatabaseHelper(getContext());
 		mDb = db.getReadableDatabase();
 		return false;
 	}
 
 	@Override
 	public Cursor query(Uri uri, String[] projection, String sel, String[] args, String order) {
-
 
 		Cursor cursor = null;
 
@@ -231,7 +230,6 @@ public class SightHuntProvider extends ContentProvider {
 				break;
 			}
 			case CREATE_SIGHT_LOCAL: {
-				//insert initiated from the server to the client
 				mDb.insertWithOnConflict(Contract.Sight.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
 				break;
 			}

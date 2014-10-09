@@ -175,7 +175,7 @@ public class HuntResultFragment extends Fragment {
 	}
 
 	private void voteAndSendToServer(final int vote) {
-		final String key = getArguments().getString(Contract.Sight.KEY);
+		final long key = getArguments().getLong(Contract.Sight.KEY);
 		final String username = mAccountUtils.getUsername();
 
 		ContentValues values = new ContentValues();
@@ -233,11 +233,11 @@ public class HuntResultFragment extends Fragment {
 
 	}
 
-	public static HuntResultFragment createInstance(String key, float lon, float lat) {
+	public static HuntResultFragment createInstance(long key, float lon, float lat) {
 		HuntResultFragment fragment = new HuntResultFragment();
 
 		Bundle arguments = new Bundle();
-		arguments.putString(Contract.Sight.KEY, key);
+		arguments.putLong(Contract.Sight.KEY, key);
 		arguments.putFloat(Contract.Sight.LON, lon);
 		arguments.putFloat(Contract.Sight.LAT, lat);
 		fragment.setArguments(arguments);

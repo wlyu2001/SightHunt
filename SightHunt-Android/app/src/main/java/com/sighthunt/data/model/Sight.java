@@ -34,7 +34,7 @@ public class Sight {
 	public static final int SIGHT_HUNTS = 11;
 
 
-	public String key;
+	public long key;
 	public String title;
 	public String description;
 	public String imageKey;
@@ -50,7 +50,7 @@ public class Sight {
 
 	public static Sight fromCursor(Cursor cursor) {
 		Sight sight = new Sight();
-		sight.key = cursor.getString(SIGHT_KEY);
+		sight.key = cursor.getLong(SIGHT_KEY);
 		sight.title = cursor.getString(SIGHT_TITLE);
 		sight.description = cursor.getString(SIGHT_DESCRIPTION);
 		sight.imageKey = cursor.getString(SIGHT_IMAGE_KEY);

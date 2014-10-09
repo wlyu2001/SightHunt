@@ -18,7 +18,7 @@ public class HuntActivity extends LocationAwareActivity {
 		setContentView(R.layout.activity_hunt);
 
 		Bundle args = getIntent().getExtras();
-		String key = args.getString(Contract.Sight.KEY);
+		long key = args.getLong(Contract.Sight.KEY);
 
 		SightFragment fragment = SightFragment.createInstance(key);
 		getSupportFragmentManager().beginTransaction()
@@ -49,7 +49,7 @@ public class HuntActivity extends LocationAwareActivity {
 
 	}
 
-	public static Intent getIntent(Context context, String key) {
+	public static Intent getIntent(Context context, long key) {
 		Intent intent = new Intent(context, HuntActivity.class);
 		intent.putExtra(Contract.Sight.KEY, key);
 		return intent;

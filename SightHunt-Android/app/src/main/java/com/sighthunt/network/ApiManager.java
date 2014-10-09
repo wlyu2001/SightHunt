@@ -33,10 +33,10 @@ public class ApiManager implements Injectable {
 
 		// type can be new, most_voted, most_hunted
 		@GET("/sight/list_by_region")
-		void getSightsByRegion(@Query("region") String region, @Query("last_modified") long lastModified, @Query("type") String type, @Query("offset") int start, @Query("limit") int limit, Callback<List<Sight>> callback);
+		void getSightsByRegion(@Query("region") String region, @Query("type") String type, @Query("offset") int start, @Query("limit") int limit, Callback<List<Long>> callback);
 
-		@GET("/sight/fetch")
-		void getSight(@Query("id") String id, Callback<Sight> callback);
+		@POST("/sight/fetch")
+		void getSights(@Body List<Long> sightIds, Callback<List<Sight>> callback);
 
 		@POST("/sight/new")
 		void createSight(@Body Sight sight, Callback<Sight> callback);
@@ -46,10 +46,10 @@ public class ApiManager implements Injectable {
 
 		// type can be hunted, created
 		@GET("/sight/list_by_user")
-		void getSightsByUser(@Query("user") String id, @Query("last_modified") long lastModified, @Query("type") String type, @Query("offset") int start, @Query("limit") int limit, Callback<List<Sight>> callback);
+		void getSightsByUser(@Query("user") String id, @Query("type") String type, @Query("offset") int start, @Query("limit") int limit, Callback<List<Long>> callback);
 
 		@GET("/sight/hunt")
-		void huntSight(@Query("user") String username, @Query("sight") String sightKey, @Query("vote") int vote, Callback<Integer> callback);
+		void huntSight(@Query("user") String username, @Query("sight") long sightId, @Query("vote") int vote, Callback<Integer> callback);
 
 	}
 
@@ -137,11 +137,11 @@ public class ApiManager implements Injectable {
 		mUserService = restAdapter.create(UserInterface.class);
 	}
 
-	public void uploadImage(String url, String key, String image, String thumb, final Callback<Sight> callback) {
+	public void uploadImage(String url, long sightId, String image, String thumb, final Callback<Sight> callback) {
 
 		final TypedFile imageFile = new TypedFile("image/jpeg", new File(image));
 		final TypedFile thumbFile = new TypedFile("image/jpeg", new File(thumb));
-		TypedString typedString = new TypedString(key);
+		TypedString typedString = new TypedString(String.valueOf(sightId));
 
 		RestAdapter imageAdapter = new RestAdapter.Builder()
 				.setEndpoint(url)

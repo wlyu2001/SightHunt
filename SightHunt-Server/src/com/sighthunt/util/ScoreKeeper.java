@@ -34,11 +34,15 @@ public class ScoreKeeper {
 		long hunts = (Long) sightEntity.getProperty(Metadata.Sight.HUNTS);
 		Date now = new Date();
 
-		sightEntity.setProperty(Metadata.Sight.VOTES, votes + vote);
-		sightEntity.setProperty(Metadata.Sight.HUNTS, hunts + 1);
-		sightEntity.setProperty(Metadata.Sight.LAST_MODIFIED, now);
+		Entity sightEntity1 = new Entity(Metadata.Sight.ENTITY_NAME);
+		sightEntity1.setPropertiesFrom(sightEntity);
 
-		datastore.put(sightEntity);
+		sightEntity1.setProperty(Metadata.Sight.VOTES, votes + vote);
+		sightEntity1.setProperty(Metadata.Sight.HUNTS, hunts + 1);
+		sightEntity1.setProperty(Metadata.Sight.LAST_MODIFIED, now);
+
+		Key key1 = datastore.put(sightEntity1);
+		datastore.delete(sightEntity.getKey());
 
 		Sight sight = (Sight) cache.get(key.getId());
 
@@ -46,7 +50,8 @@ public class ScoreKeeper {
 			sight.votes = (int)votes + vote;
 			sight.hunts = (int)hunts + 1;
 			sight.last_modified = now.getTime();
-			cache.put(key.getId(), sight);
+			cache.delete(key.getId());
+			cache.put(key1.getId(), sight);
 		}
 
 		return creator;
