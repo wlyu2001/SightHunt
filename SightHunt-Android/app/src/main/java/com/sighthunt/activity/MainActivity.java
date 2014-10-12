@@ -140,10 +140,7 @@ public class MainActivity extends LocationAwareActivity implements AccountUtils.
 		}
 		ft.commit();
 
-		User user = mAccountUtils.getUer();
-
-		getActionBar().setTitle(getString(R.string.title_results).toUpperCase() +
-				(user == null ? "" : "  " + user.points + " points"));
+		showPoints();
 		mBrowseShown = false;
 	}
 
@@ -199,10 +196,13 @@ public class MainActivity extends LocationAwareActivity implements AccountUtils.
 	@Override
 	public void updated() {
 		if (!mBrowseShown) {
-			User user = mAccountUtils.getUer();
-			getActionBar().setTitle(getString(R.string.title_results).toUpperCase() +
-					(user == null ? "  " : user.points) + " Points");
+			showPoints();
 		}
+	}
 
+	private void showPoints() {
+		User user = mAccountUtils.getUer();
+		getActionBar().setTitle(getString(R.string.title_results).toUpperCase() +
+				user == null ? "" : "  "+user.points + " points");
 	}
 }

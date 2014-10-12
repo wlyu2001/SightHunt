@@ -72,17 +72,17 @@ public final class Contract {
 			return Uri.parse(CONTENT_URI + "/sight/" + uuid);
 		}
 
-		public static final Uri getDeleteSightRemoteUri(long uuid) {
-			return Uri.parse(CONTENT_URI + "/delete_sight/" + uuid + "/remote");
-		}
+//		public static final Uri getDeleteSightRemoteUri(long uuid) {
+//			return Uri.parse(CONTENT_URI + "/delete_sight/" + uuid + "/remote");
+//		}
 
 		public static final Uri getDeleteSightLocalUri(long uuid) {
 			return Uri.parse(CONTENT_URI + "/delete_sight/" + uuid + "/local");
 		}
 
-		public static final Uri getEditSightRemoteUri() {
-			return Uri.parse(CONTENT_URI + "/edit_sight/remote");
-		}
+//		public static final Uri getEditSightRemoteUri() {
+//			return Uri.parse(CONTENT_URI + "/edit_sight/remote");
+//		}
 
 		public static final Uri getEditSightLocalUri() {
 			return Uri.parse(CONTENT_URI + "/edit_sight/local");

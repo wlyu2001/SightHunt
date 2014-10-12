@@ -22,6 +22,7 @@ import com.sighthunt.data.Contract;
 import com.sighthunt.data.model.Sight;
 import com.sighthunt.fragment.hunt.HuntCamFragment;
 import com.sighthunt.inject.Injector;
+import com.sighthunt.network.SightHuntService;
 import com.sighthunt.util.AccountUtils;
 import com.sighthunt.util.ImageFiles;
 import com.sighthunt.util.ImageHelper;
@@ -94,7 +95,7 @@ public class SightFragment extends Fragment {
 		mButtonDelete.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				getActivity().getContentResolver().delete(Contract.Sight.getDeleteSightRemoteUri(uuid), null, null);
+				getActivity().startService(SightHuntService.getDeleteSightIntent(getActivity(),uuid));
 				getActivity().finish();
 			}
 		});
@@ -115,9 +116,7 @@ public class SightFragment extends Fragment {
 					sight.uuid = uuid;
 					sight.title = mTitleEditText.getText().toString();
 					sight.description = mDescriptionEditText.getText().toString();
-					ContentValues values = Contract.Sight.createContentValues(sight);
-
-					getActivity().getContentResolver().update(Contract.Sight.getEditSightRemoteUri(), values, null, null);
+					getActivity().startService(SightHuntService.getEditSightIntent(getActivity(), sight));
 
 					mButtonEdit.setText("Edit");
 

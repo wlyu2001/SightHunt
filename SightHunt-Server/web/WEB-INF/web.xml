@@ -60,6 +60,11 @@
     </servlet>
 
     <servlet>
+        <servlet-name>fetch-hunts</servlet-name>
+        <servlet-class>com.sighthunt.servlet.sight.FetchHuntsServlet</servlet-class>
+    </servlet>
+
+    <servlet>
         <servlet-name>login</servlet-name>
         <servlet-class>com.sighthunt.servlet.user.LoginServlet</servlet-class>
     </servlet>
@@ -133,4 +138,11 @@
         <servlet-name>delete-sight</servlet-name>
         <url-pattern>/sight/delete</url-pattern>
     </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>fetch-hunts</servlet-name>
+        <url-pattern>/sight/fetch_hunts</url-pattern>
+    </servlet-mapping>
+
+
 </web-app>

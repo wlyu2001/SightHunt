@@ -13,9 +13,9 @@ import com.sighthunt.data.Contract;
 import com.sighthunt.inject.Injector;
 import com.sighthunt.network.model.Sight;
 import com.sighthunt.network.model.SightFetchType;
-import com.sighthunt.network.model.User;
 import com.sighthunt.util.AccountUtils;
 import com.sighthunt.util.ImageFiles;
+import com.sighthunt.util.PreferenceUtil;
 import com.sighthunt.util.Scores;
 import com.sighthunt.util.SightsKeeper;
 
@@ -43,7 +43,6 @@ public class SightHuntService extends Service {
 
 	private static final String ARG_SIGHT_TYPE = "arg_sight_type";
 	private static final String ARG_USER = "arg_user";
-	private static final String ARG_LAST_UPDATE = "arg_last_update";
 	private static final String ARG_LIMIT = "arg_limit";
 	private static final String ARG_OFFSET = "arg_offset";
 
@@ -195,8 +194,6 @@ public class SightHuntService extends Service {
 						ImageFiles.NEW_IMAGE_THUMB.getAbsolutePath(), new Callback<Sight>() {
 							@Override
 							public void success(Sight s2, Response response) {
-								//getContentResolver().notifyChange(Contract.Sight.getCreateSightRemoteUri(), null);
-								// insert sight locally and notify
 								sight.thumb_key = s2.thumb_key;
 								sight.image_key = s2.image_key;
 								insertSightLocally(sight);
@@ -228,8 +225,6 @@ public class SightHuntService extends Service {
 		final int offset = args.getInt(ARG_OFFSET);
 		final Uri uri = Contract.Sight.getFetchSightsByRegionLocalUri(region, type);
 
-		Log.i("SightHuntService", "FetchSightsByRegion");
-
 		mApiManager.getSightService().getSightsByRegion(region, type, offset, limit, new Callback<List<Long>>() {
 			@Override
 			public void success(List<Long> keys, Response response) {
@@ -243,28 +238,27 @@ public class SightHuntService extends Service {
 		});
 	}
 
+	private void fetchDeletes(Bundle args) {
+	}
+
 	private void fetchHunts(Bundle args) {
 		final String user = args.getString(ARG_USER);
-		long last_update = args.getLong(ARG_LAST_UPDATE);
 		mCurrentUser = user;
-		final Uri uri = Contract.Hunt.getFetchHuntsRemoteUri(user);
+		long lastUpdate = PreferenceUtil.getHuntsLastUpdate(this, user);
 
-		Log.i("SightHuntService", "FetchSightsByRegion");
-
-		mApiManager.getSightService().fetchHunts(user, last_update, new Callback<List<Long>>() {
+		mApiManager.getSightService().fetchHunts(user, lastUpdate, new Callback<List<Long>>() {
 			@Override
 			public void success(List<Long> uuids, Response response) {
-				// put last update in the end of uuids,hacky??
-				for (long uuid : uuids) {
-					insertHuntLocally(user, uuid);
+				// put last update in the end of uuids
+				for (int i = 0; i < uuids.size() - 1; i++) {
+					insertHuntLocally(user, uuids.get(i));
 				}
 
-				// udpate preference last update
+				PreferenceUtil.saveHuntsLastUpdate(SightHuntService.this, user, uuids.get(uuids.size() - 1));
 			}
 
 			@Override
 			public void failure(RetrofitError error) {
-				getContentResolver().notifyChange(uri, null);
 			}
 		});
 	}
