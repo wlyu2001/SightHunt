@@ -7,6 +7,7 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.gson.Gson;
+import com.sighthunt.data.Metadata;
 import com.sighthunt.network.model.Sight;
 import com.sighthunt.util.DBHelper;
 import com.sighthunt.util.HttpServletRequestHelper;
@@ -16,6 +17,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.UUID;
 
 
 public class NewSightServlet extends HttpServlet {
@@ -30,6 +32,8 @@ public class NewSightServlet extends HttpServlet {
         Sight sight = new Gson().fromJson(req.getReader(), Sight.class);
 
         Entity sightEntity = DBHelper.createSightEntity(sight);
+		Long uuid = UUID.randomUUID().getMostSignificantBits();
+		sightEntity.setProperty(Metadata.Sight.UUID, uuid);
         Key key = datastore.put(sightEntity);
 
         BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
@@ -37,6 +41,7 @@ public class NewSightServlet extends HttpServlet {
 
         Sight returnSight = new Sight();
         returnSight.key = String.valueOf(key.getId());
+		returnSight.uuid = uuid;
         // use image_key for upload url for convenience
         returnSight.image_key = blobUploadUrl;
         JsonResponseWriter.write(resp, returnSight);

@@ -8,6 +8,7 @@ public class User {
 	public String screen_name;
 	public int hunts;
 	public int votes;
+	public int sights;
 	public int points;
 	public String email;
 	public boolean fb;

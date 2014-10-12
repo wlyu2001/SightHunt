@@ -18,4 +18,5 @@ public class Sight implements Serializable {
     public float lat;
     public long time_created;
     public long last_modified;
+	public long uuid;
 }

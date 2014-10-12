@@ -2,7 +2,6 @@ package com.sighthunt.fragment.hunt;
 
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,8 +16,6 @@ import com.sighthunt.util.ImageFiles;
 import com.sighthunt.view.CapturePreview;
 import com.squareup.picasso.Picasso;
 
-import java.io.File;
-
 public class HuntCamFragment extends LocationAwareFragment {
 
 	@Override
@@ -27,6 +24,7 @@ public class HuntCamFragment extends LocationAwareFragment {
 
 		Bundle args = getArguments();
 		final long key = args.getLong(Contract.Sight.KEY);
+		final long uuid = args.getLong(Contract.Sight.UUID);
 
 		ImageView imageView = (ImageView) view.findViewById(R.id.image_view);
 		imageView.setAlpha(0.5f);
@@ -39,8 +37,16 @@ public class HuntCamFragment extends LocationAwareFragment {
 					@Override
 					public void pictureCaptured(boolean success) {
 						if (success) {
+
+							// disable hunting if location is not ready...
 							Location location = getCurrentLocation();
-							Fragment fragment = HuntResultFragment.createInstance(key, (float)location.getLongitude(), (float)location.getLatitude());
+							float lat = 0;
+							float lon = 0;
+							if (location != null) {
+								lat = (float) location.getLatitude();
+								lon = (float) location.getLongitude();
+							}
+							Fragment fragment = HuntResultFragment.createInstance(key,uuid, lon, lat);
 							getFragmentManager().beginTransaction().replace(R.id.container, fragment, null).addToBackStack("HuntCamFragment").commit();
 						}
 					}
@@ -52,10 +58,11 @@ public class HuntCamFragment extends LocationAwareFragment {
 		return view;
 	}
 
-	public static HuntCamFragment createInstance(long key) {
+	public static HuntCamFragment createInstance(long key, long uuid) {
 		HuntCamFragment fragment = new HuntCamFragment();
 		Bundle args = new Bundle();
 		args.putLong(Contract.Sight.KEY, key);
+		args.putLong(Contract.Sight.UUID, uuid);
 		fragment.setArguments(args);
 		return fragment;
 	}

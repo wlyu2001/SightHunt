@@ -46,6 +46,7 @@ public class HuntResultFragment extends Fragment {
 
 	private static final String PREF_SELECTED_DETECTOR = "pref_selected_detector";
 	private static final String PREF_SELECTED_DESCRIPTOR = "pref_selected_descriptor";
+	private static final String PREF_PREPRO = "pref_prepro";
 	private static final String PREF_SELECTED_MATCHER = "pref_selected_matcher";
 	private static final String PREF_MATCH_THRESHOLD = "pref_match_threshold";
 
@@ -53,6 +54,7 @@ public class HuntResultFragment extends Fragment {
 	private static final String[] MATCHERS = new String[]{"FLANNBASED", "BRUTEFORCE", "BRUTEFORCE_L1", "BRUTEFORCE_HAMMING", "BRUTEFORCE_HAMMINGLUT", "BRUTEFORCE_SL2"};
 	private static final String[] DETECTOR = new String[]{"FAST", "START", "SIFT", "SURF", "ORB", "MSER", "GFTT", "HARRIS", "SIMPLEBLOB", "DENSE", "BRISK"};
 	private static final String[] DESCRIPTOR = new String[]{"SIFT", "SURF", "ORB", "BRIEF", "BRISK", "FREAK"};
+	private static final String[] PREPRO = new String[]{"ORIGINAL", "BINARY", "EDGE"};
 	private static final int[] MATCHERS_MAP = new int[]{1, 2, 3, 4, 5, 6};
 	private static final int[] DETECTOR_MAP = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
 	private static final int[] DESCRIPTOR_MAP = new int[]{1, 2, 3, 4, 5, 6};
@@ -97,6 +99,21 @@ public class HuntResultFragment extends Fragment {
 			}
 		});
 
+		final Button buttonPrepro = (Button) view.findViewById(R.id.button_prepro);
+		buttonPrepro.setText(PREPRO[mPrefs.getInt(PREF_PREPRO, 0)]);
+		buttonPrepro.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				int selected = mPrefs.getInt(PREF_PREPRO, 0);
+				showChoserDialog("Preprocess", PREPRO, selected, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						mPrefs.edit().putInt(PREF_PREPRO, which).commit();
+						buttonPrepro.setText(PREPRO[which]);
+					}
+				});
+			}
+		});
 
 		final Button buttonDescriptor = (Button) view.findViewById(R.id.button_descriptor);
 		buttonDescriptor.setText(DESCRIPTOR[mPrefs.getInt(PREF_SELECTED_DESCRIPTOR, 0)]);
@@ -160,14 +177,20 @@ public class HuntResultFragment extends Fragment {
 					successLayout.setVisibility(View.GONE);
 					failedLayout.setVisibility(View.VISIBLE);
 				}
+
+				int prepro = mPrefs.getInt(PREF_PREPRO, 0);
+				if (prepro == 0) {
+					Picasso.with(getActivity()).load(ImageFiles.ORIGINAL_IMAGE).skipMemoryCache().into(mImageView1);
+					Picasso.with(getActivity()).load(ImageFiles.MATCH_IMAGE).skipMemoryCache().into(mImageView2);
+				} else {
+					Picasso.with(getActivity()).load(ImageFiles.ORIGINAL_IMAGE_PREPRO).skipMemoryCache().into(mImageView1);
+					Picasso.with(getActivity()).load(ImageFiles.MATCH_IMAGE_PREPRO).skipMemoryCache().into(mImageView2);
+				}
 			}
 		});
 
 		mImageView1 = (ImageView) view.findViewById(R.id.imageView1);
 		mImageView2 = (ImageView) view.findViewById(R.id.imageView2);
-
-		Picasso.with(getActivity()).load(ImageFiles.ORIGINAL_IMAGE).skipMemoryCache().into(mImageView1);
-		Picasso.with(getActivity()).load(ImageFiles.MATCH_IMAGE).skipMemoryCache().into(mImageView2);
 
 		mMatchOverlayView = (MatchOverlayView) view.findViewById(R.id.matchOverlayView);
 
@@ -175,12 +198,14 @@ public class HuntResultFragment extends Fragment {
 	}
 
 	private void voteAndSendToServer(final int vote) {
+		final long uuid = getArguments().getLong(Contract.Sight.UUID);
 		final long key = getArguments().getLong(Contract.Sight.KEY);
 		final String username = mAccountUtils.getUsername();
 
 		ContentValues values = new ContentValues();
 		values.put(Contract.Hunt.USER, username);
-		values.put(Contract.Hunt.SIGHT, key);
+		values.put(Contract.Hunt.SIGHT_UUID, uuid);
+		values.put(Contract.Hunt.SIGHT_KEY, key);
 		values.put(Contract.Hunt.VOTE, vote);
 		getActivity().getContentResolver().insert(Contract.Hunt.getInsertHuntRemoteUri(), values);
 
@@ -214,11 +239,12 @@ public class HuntResultFragment extends Fragment {
 		int matcher = MATCHERS_MAP[mPrefs.getInt(PREF_SELECTED_MATCHER, 0)];
 		int detector = DETECTOR_MAP[mPrefs.getInt(PREF_SELECTED_DETECTOR, 0)];
 		int descriptor = DESCRIPTOR_MAP[mPrefs.getInt(PREF_SELECTED_DESCRIPTOR, 0)];
+		int prepro = mPrefs.getInt(PREF_PREPRO, 0);
 
-		mImageMatcher = new ImageMatcher(detector, descriptor, matcher, Float.parseFloat(mThreshold.getText().toString()));
+		mImageMatcher = new ImageMatcher(detector, descriptor, matcher, Float.parseFloat(mThreshold.getText().toString()), prepro);
 		//mImageMatcher = new ImageMatcher(FeatureDetector.ORB, DescriptorExtractor.ORB, DescriptorMatcher.BRUTEFORCE_HAMMING, 40);
 
-		mImageMatcher.getImageMatchingScore(ImageFiles.ORIGINAL_IMAGE, ImageFiles.MATCH_IMAGE);
+		mImageMatcher.getImageMatchingScore();
 
 		Log.i("lingyu matches", mImageMatcher.getMatches().size() + "");
 
@@ -233,11 +259,13 @@ public class HuntResultFragment extends Fragment {
 
 	}
 
-	public static HuntResultFragment createInstance(long key, float lon, float lat) {
+	public static HuntResultFragment createInstance(long key, long uuid, float lon, float lat) {
 		HuntResultFragment fragment = new HuntResultFragment();
 
 		Bundle arguments = new Bundle();
+
 		arguments.putLong(Contract.Sight.KEY, key);
+		arguments.putLong(Contract.Sight.UUID, uuid);
 		arguments.putFloat(Contract.Sight.LON, lon);
 		arguments.putFloat(Contract.Sight.LAT, lat);
 		fragment.setArguments(arguments);

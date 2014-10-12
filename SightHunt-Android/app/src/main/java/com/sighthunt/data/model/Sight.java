@@ -18,6 +18,7 @@ public class Sight {
 			Contract.Sight.LAT,
 			Contract.Sight.VOTES,
 			Contract.Sight.HUNTS,
+			Contract.Sight.UUID,
 	};
 
 	public static final int SIGHT_KEY = 0;
@@ -32,6 +33,7 @@ public class Sight {
 	public static final int SIGHT_LAT = 9;
 	public static final int SIGHT_VOTES = 10;
 	public static final int SIGHT_HUNTS = 11;
+	public static final int SIGHT_UUID = 12;
 
 
 	public long key;
@@ -46,6 +48,7 @@ public class Sight {
 	public long timeCreated;
 	public int votes;
 	public int hunts;
+	public long uuid;
 
 
 	public static Sight fromCursor(Cursor cursor) {
@@ -62,6 +65,7 @@ public class Sight {
 		sight.timeCreated = cursor.getLong(SIGHT_TIME_CREATED);
 		sight.votes = cursor.getInt(SIGHT_VOTES);
 		sight.hunts = cursor.getInt(SIGHT_HUNTS);
+		sight.uuid = cursor.getLong(SIGHT_UUID);
 
 		return sight;
 	}

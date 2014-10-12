@@ -16,7 +16,7 @@ public class SightHuntDatabaseHelper extends SQLiteOpenHelper implements Injecta
 	private static final String COMMA_SEP = ",";
 
 	private static final String DATABASE_NAME = "sight.db";
-	public static final int DATABASE_VERSION = 9;
+	public static final int DATABASE_VERSION = 18;
 	private static final String SQL_CREATE_SIGHTS =
 			"CREATE TABLE " + Contract.Sight.TABLE_NAME + " (" +
 					Contract.Sight.KEY + INTEGER_TYPE + COMMA_SEP +
@@ -31,18 +31,17 @@ public class SightHuntDatabaseHelper extends SQLiteOpenHelper implements Injecta
 					Contract.Sight.THUMB_KEY + TEXT_TYPE + COMMA_SEP +
 					Contract.Sight.DESCRIPTION + TEXT_TYPE + COMMA_SEP +
 					Contract.Sight.LON + REAL_TYPE + COMMA_SEP +
-					Contract.Sight.LAT + REAL_TYPE +
-					"PRIMARY KEY (" + Contract.Sight.CREATOR + COMMA_SEP +
-					Contract.Sight.TIME_CREATED + "))";
+					Contract.Sight.LAT + REAL_TYPE + COMMA_SEP +
+					Contract.Sight.UUID + INTEGER_TYPE + " PRIMARY KEY)";
 
 
 	private static final String SQL_CREATE_HUNTS =
 			"CREATE TABLE " + Contract.Hunt.TABLE_NAME + " (" +
 					Contract.Hunt.USER + TEXT_TYPE + COMMA_SEP +
-					Contract.Hunt.SIGHT + INTEGER_TYPE + COMMA_SEP +
+					Contract.Hunt.SIGHT_UUID + INTEGER_TYPE + COMMA_SEP +
 					Contract.Hunt.VOTE + INTEGER_TYPE + COMMA_SEP +
 					"PRIMARY KEY (" + Contract.Hunt.USER + COMMA_SEP +
-					Contract.Hunt.SIGHT + "))";
+					Contract.Hunt.SIGHT_UUID + "))";
 
 	private static final String SQL_DELETE_SIGHTS =
 			"DROP TABLE IF EXISTS " + Contract.Sight.TABLE_NAME;
@@ -77,5 +76,10 @@ public class SightHuntDatabaseHelper extends SQLiteOpenHelper implements Injecta
 		SharedPreferences.Editor editor = prefs.edit();
 		editor.clear();
 		editor.commit();
+	}
+
+	@Override
+	public void onOpen (SQLiteDatabase db) {
+
 	}
 }

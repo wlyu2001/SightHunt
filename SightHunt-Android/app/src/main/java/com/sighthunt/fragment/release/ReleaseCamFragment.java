@@ -10,11 +10,13 @@ import android.widget.Button;
 
 import com.sighthunt.R;
 import com.sighthunt.activity.LocationAwareActivity;
+import com.sighthunt.data.Contract;
 import com.sighthunt.fragment.LocationAwareFragment;
 import com.sighthunt.util.ImageFiles;
 import com.sighthunt.view.CapturePreview;
 
 public class ReleaseCamFragment extends LocationAwareFragment {
+
 
 
 	@Override
@@ -30,7 +32,8 @@ public class ReleaseCamFragment extends LocationAwareFragment {
 					public void pictureCaptured(boolean success) {
 						if (success) {
 							Location location = getCurrentLocation();
-							Fragment fragment = ReleaseDescriptionFragment.createInstance(getRegion(),
+							String region = getRegion();
+							Fragment fragment = ReleaseDescriptionFragment.createInstance(region,
 									(float) location.getLongitude(),
 									(float) location.getLatitude());
 							getFragmentManager().beginTransaction().replace(R.id.container, fragment, null).addToBackStack(null).commit();

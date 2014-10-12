@@ -9,6 +9,7 @@ import com.sighthunt.data.SightHuntDatabaseHelper;
 import com.sighthunt.inject.Injector;
 import com.sighthunt.network.ApiManager;
 import com.sighthunt.util.AccountUtils;
+import com.sighthunt.util.PreferenceUtil;
 import com.sighthunt.util.SightsKeeper;
 
 public class SightHuntApplication extends Application {
@@ -32,9 +33,10 @@ public class SightHuntApplication extends Application {
 		SightHuntDatabaseHelper dbHelper = new SightHuntDatabaseHelper(this);
 		SQLiteDatabase db = dbHelper.getReadableDatabase();
 		SightsKeeper sk = Injector.get(SightsKeeper.class);
-		Cursor cursor = db.rawQuery("SELECT "+ Contract.Sight.KEY+ " FROM "+ Contract.Sight.TABLE_NAME, null);
+		Cursor cursor = db.rawQuery("SELECT " + Contract.Sight.KEY + ", " + Contract.Sight.UUID + " FROM " + Contract.Sight.TABLE_NAME, null);
 		while (cursor.moveToNext()) {
-			sk.addCachedSightId(cursor.getLong(0));
+			sk.addCachedSightKey(cursor.getLong(0), cursor.getLong(1));
 		}
+		cursor.close();
 	}
 }

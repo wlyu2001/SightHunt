@@ -2,15 +2,9 @@ package com.sighthunt.servlet.sight;
 
 import com.google.appengine.api.datastore.*;
 import com.google.appengine.api.datastore.Query.Filter;
-import com.google.appengine.api.datastore.Query.FilterOperator;
-import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortDirection;
-import com.google.appengine.api.memcache.MemcacheService;
-import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.sighthunt.data.Metadata;
-import com.sighthunt.network.model.Sight;
-import com.sighthunt.network.model.SightType;
-import com.sighthunt.util.DBHelper;
+import com.sighthunt.network.model.SightFetchType;
 import com.sighthunt.util.HttpServletRequestHelper;
 import com.sighthunt.util.JsonResponseWriter;
 
@@ -42,11 +36,11 @@ public class ListSightsByRegionServlet extends HttpServlet {
 		Filter regionFilter = new Query.FilterPredicate(Metadata.Sight.REGION, Query.FilterOperator.EQUAL, region);
 		query.setFilter(regionFilter);
 
-		if (SightType.NEW.equals(type)) {
+		if (SightFetchType.NEW.equals(type)) {
 			query.addSort(Metadata.Sight.TIME_CREATED, SortDirection.DESCENDING);
-		} else if (SightType.MOST_HUNTED.equals(type)) {
+		} else if (SightFetchType.MOST_HUNTED.equals(type)) {
 			query.addSort(Metadata.Sight.HUNTS, SortDirection.DESCENDING);
-		} else if (SightType.MOST_VOTED.equals(type)) {
+		} else if (SightFetchType.MOST_VOTED.equals(type)) {
 			query.addSort(Metadata.Sight.VOTES, SortDirection.DESCENDING);
 		}
 

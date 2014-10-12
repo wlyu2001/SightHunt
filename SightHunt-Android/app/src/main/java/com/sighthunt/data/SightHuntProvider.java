@@ -10,7 +10,7 @@ import android.net.Uri;
 
 import com.sighthunt.network.SightHuntService;
 import com.sighthunt.network.model.Sight;
-import com.sighthunt.network.model.SightSortType;
+import com.sighthunt.network.model.SightFetchType;
 
 import java.util.List;
 
@@ -25,9 +25,14 @@ public class SightHuntProvider extends ContentProvider {
 		CREATE_SIGHT_LOCAL,
 		SIGHT_LIST_BY_USER_REMOTE,
 		SIGHT_LIST_BY_USER_LOCAL,
-		INSERT_HUNT_LOCAL,
-		INSERT_HUNT_REMOTE,
-		CHECK_HUNT;
+		CREATE_HUNT_LOCAL,
+		CREATE_HUNT_REMOTE,
+		DELETE_SIGHT_LOCAL,
+		DELETE_SIGHT_REMOTE,
+		EDIT_SIGHT_LOCAL,
+		EDIT_SIGHT_REMOTE,
+		CHECK_HUNT,
+		FETCH_HUNTS_REMOTE;
 
 		private static final ContentType[] VALUES = values();
 
@@ -51,19 +56,28 @@ public class SightHuntProvider extends ContentProvider {
 		sUriMatcher.addURI(Contract.AUTHORITY, "create_sight/local", ContentType.CREATE_SIGHT_LOCAL.ordinal());
 		sUriMatcher.addURI(Contract.AUTHORITY, "create_sight/remote", ContentType.CREATE_SIGHT_REMOTE.ordinal());
 
-		sUriMatcher.addURI(Contract.AUTHORITY, "hunt/local", ContentType.INSERT_HUNT_LOCAL.ordinal());
-		sUriMatcher.addURI(Contract.AUTHORITY, "hunt/remote", ContentType.INSERT_HUNT_REMOTE.ordinal());
+		sUriMatcher.addURI(Contract.AUTHORITY, "delete_sight/*/local", ContentType.DELETE_SIGHT_LOCAL.ordinal());
+		sUriMatcher.addURI(Contract.AUTHORITY, "delete_sight/*/remote", ContentType.DELETE_SIGHT_REMOTE.ordinal());
+		sUriMatcher.addURI(Contract.AUTHORITY, "edit_sight/local", ContentType.EDIT_SIGHT_LOCAL.ordinal());
+		sUriMatcher.addURI(Contract.AUTHORITY, "edit_sight/remote", ContentType.EDIT_SIGHT_REMOTE.ordinal());
+
+		sUriMatcher.addURI(Contract.AUTHORITY, "create_hunt/local", ContentType.CREATE_HUNT_LOCAL.ordinal());
+		sUriMatcher.addURI(Contract.AUTHORITY, "create_hunt/remote", ContentType.CREATE_HUNT_REMOTE.ordinal());
+		sUriMatcher.addURI(Contract.AUTHORITY, "fetch_hunts/*/remote", ContentType.FETCH_HUNTS_REMOTE.ordinal());
 
 		sUriMatcher.addURI(Contract.AUTHORITY, "hunt/*/sight/*", ContentType.CHECK_HUNT.ordinal());
 	}
 
-	SQLiteDatabase mDb;
+	SightHuntDatabaseHelper mDb;
 
 	@Override
 	public boolean onCreate() {
-		SightHuntDatabaseHelper db = new SightHuntDatabaseHelper(getContext());
-		mDb = db.getReadableDatabase();
-		return false;
+		mDb = new SightHuntDatabaseHelper(getContext());
+		return true;
+	}
+
+	private SQLiteDatabase getDb() {
+		return mDb.getReadableDatabase();
 	}
 
 	@Override
@@ -74,10 +88,10 @@ public class SightHuntProvider extends ContentProvider {
 		switch (getContentType(uri)) {
 			case SIGHT: {
 
-				String key = getKey(uri);
-				String selection = Contract.Sight.KEY + " == ?";
-				String[] selectionArgs = new String[]{key};
-				cursor = mDb.query(Contract.Sight.TABLE_NAME, projection, selection, selectionArgs, null, null, null);
+				String uuid = getUUID(uri);
+				String selection = Contract.Sight.UUID + " == ?";
+				String[] selectionArgs = new String[]{uuid};
+				cursor = getDb().query(Contract.Sight.TABLE_NAME, projection, selection, selectionArgs, null, null, null);
 				break;
 			}
 			case SIGHT_LIST_BY_REGION_REMOTE: {
@@ -100,15 +114,15 @@ public class SightHuntProvider extends ContentProvider {
 				String selection = Contract.Sight.REGION + " = ?";
 				String[] selectionArgs = new String[]{region};
 
-				if (SightSortType.MOST_VOTED.equals(type)) {
+				if (SightFetchType.MOST_VOTED.equals(type)) {
 					sortOrder = Contract.Sight.VOTES + " DESC";
-				} else if (SightSortType.MOST_HUNTED.equals(type)) {
+				} else if (SightFetchType.MOST_HUNTED.equals(type)) {
 					sortOrder = Contract.Sight.HUNTS + " DESC";
-				} else if (SightSortType.NEW.equals(type)) {
+				} else if (SightFetchType.NEW.equals(type)) {
 					sortOrder = Contract.Sight.TIME_CREATED + " DESC";
 				}
 
-				cursor = mDb.query(Contract.Sight.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+				cursor = getDb().query(Contract.Sight.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
 				cursor.setNotificationUri(getContext().getContentResolver(), uri);
 
 				break;
@@ -129,20 +143,20 @@ public class SightHuntProvider extends ContentProvider {
 				String user = getUser(uri);
 				String type = getSightListType(uri);
 
-				if (SightSortType.CREATED_BY.equals(type)) {
+				if (SightFetchType.CREATED_BY.equals(type)) {
 					String selection = Contract.Sight.CREATOR + " = ?";
 					String[] selectionArgs = new String[]{user};
 					String sortOrder = Contract.Sight.TIME_CREATED + " DESC";
 
-					cursor = mDb.query(Contract.Sight.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+					cursor = getDb().query(Contract.Sight.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
 					cursor.setNotificationUri(getContext().getContentResolver(), uri);
-				} else if (SightSortType.HUNTED_BY.equals(type)) {
+				} else if (SightFetchType.HUNTED_BY.equals(type)) {
 
 					String sql = "SELECT " + projectionToString(projection) + " FROM " + Contract.Hunt.TABLE_NAME +
-							" AS hunt JOIN " + Contract.Sight.TABLE_NAME + " AS sight" + " ON hunt." + Contract.Hunt.SIGHT +
-							"=" + "sight." + Contract.Sight.KEY + " WHERE hunt." + Contract.Hunt.USER + "=?";
+							" AS hunt JOIN " + Contract.Sight.TABLE_NAME + " AS sight" + " ON hunt." + Contract.Hunt.SIGHT_UUID +
+							"=" + "sight." + Contract.Sight.UUID + " WHERE hunt." + Contract.Hunt.USER + " =? ";
 
-					cursor = mDb.rawQuery(sql, new String[]{user});
+					cursor = getDb().rawQuery(sql, new String[]{user});
 					cursor.setNotificationUri(getContext().getContentResolver(), uri);
 				}
 				break;
@@ -150,12 +164,19 @@ public class SightHuntProvider extends ContentProvider {
 			case CHECK_HUNT: {
 				List<String> segments = uri.getPathSegments();
 				String user = segments.get(1);
-				String sight = segments.get(3);
+				String uuid = segments.get(3);
 
-				String selection = Contract.Hunt.USER + " = ? AND " + Contract.Hunt.SIGHT + " = ?";
-				String[] selectionArgs = new String[]{user, sight};
+				String selection = Contract.Hunt.USER + " = ? AND " + Contract.Hunt.SIGHT_UUID + " = ?";
+				String[] selectionArgs = new String[]{user, uuid};
 
-				cursor = mDb.query(Contract.Hunt.TABLE_NAME, null, selection, selectionArgs, null, null, null);
+				cursor = getDb().query(Contract.Hunt.TABLE_NAME, null, selection, selectionArgs, null, null, null);
+			} case FETCH_HUNTS_REMOTE: {
+				String user = getUser(uri);
+				Intent dataRefreshIntent = SightHuntService.getFetchHuntsIntent(getContext(), user);
+				if (dataRefreshIntent != null) {
+					getContext().startService(dataRefreshIntent);
+				}
+				break;
 			}
 			default: {
 			}
@@ -164,6 +185,7 @@ public class SightHuntProvider extends ContentProvider {
 		return cursor;
 
 	}
+
 	private String projectionToString(String[] projection) {
 		StringBuilder projectionStringBuilder = new StringBuilder();
 		String prefix = "";
@@ -197,7 +219,7 @@ public class SightHuntProvider extends ContentProvider {
 		return segments.get(1);
 	}
 
-	public String getKey(Uri uri) {
+	public String getUUID(Uri uri) {
 		List<String> segments = uri.getPathSegments();
 		return segments.get(1);
 	}
@@ -230,18 +252,19 @@ public class SightHuntProvider extends ContentProvider {
 				break;
 			}
 			case CREATE_SIGHT_LOCAL: {
-				mDb.insertWithOnConflict(Contract.Sight.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+				getDb().insertWithOnConflict(Contract.Sight.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
 				break;
 			}
-			case INSERT_HUNT_LOCAL: {
-				mDb.insertWithOnConflict(Contract.Hunt.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+			case CREATE_HUNT_LOCAL: {
+				getDb().insertWithOnConflict(Contract.Hunt.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
 				break;
 			}
-			case INSERT_HUNT_REMOTE: {
+			case CREATE_HUNT_REMOTE: {
 				String user = values.getAsString(Contract.Hunt.USER);
-				String sight = values.getAsString(Contract.Hunt.SIGHT);
+				long uuid = values.getAsLong(Contract.Hunt.SIGHT_UUID);
+				long key = values.getAsLong(Contract.Hunt.SIGHT_KEY);
 				int vote = values.getAsInteger(Contract.Hunt.VOTE);
-				getContext().startService(SightHuntService.getInsertHuntIntent(getContext(), user, sight, vote));
+				getContext().startService(SightHuntService.getInsertHuntIntent(getContext(), user, uuid, key, vote));
 				break;
 			}
 
@@ -254,11 +277,38 @@ public class SightHuntProvider extends ContentProvider {
 
 	@Override
 	public int delete(Uri uri, String selection, String[] selectionArgs) {
+		switch (getContentType(uri)) {
+			case DELETE_SIGHT_LOCAL: {
+				getDb().delete(Contract.Sight.TABLE_NAME, selection, selectionArgs);
+				break;
+			}
+			case DELETE_SIGHT_REMOTE: {
+				long uuid = Long.parseLong(getUUID(uri));
+				getContext().startService(SightHuntService.getDeleteSightIntent(getContext(), uuid));
+				break;
+			}
+			default: {
+			}
+		}
 		return 0;
 	}
 
 	@Override
 	public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+		switch (getContentType(uri)) {
+			case EDIT_SIGHT_LOCAL: {
+				getDb().update(Contract.Sight.TABLE_NAME, values, selection, selectionArgs);
+				break;
+			}
+			case EDIT_SIGHT_REMOTE: {
+
+				Sight sight = Contract.Sight.createSightFromContentValues(values);
+				getContext().startService(SightHuntService.getEditSightIntent(getContext(), sight));
+				break;
+			}
+			default: {
+			}
+		}
 		return 0;
 	}
 }

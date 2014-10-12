@@ -1,5 +1,6 @@
 package com.sighthunt.fragment;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -13,8 +14,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.sighthunt.R;
 import com.sighthunt.data.Contract;
@@ -33,7 +34,13 @@ import java.io.FileOutputStream;
 public class SightFragment extends Fragment {
 
 	AccountUtils mAccountUtils = Injector.get(AccountUtils.class);
-	Button mButton;
+	Button mButtonHunt;
+	Button mButtonEdit;
+	Button mButtonDelete;
+	EditText mDescriptionEditText;
+	EditText mTitleEditText;
+	Drawable mOriginalDrawable;
+	private boolean mEditMode;
 
 	Target mTarget = new Target() {
 		@Override
@@ -60,28 +67,71 @@ public class SightFragment extends Fragment {
 		}
 	};
 
+
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		final View view = inflater.inflate(R.layout.fragment_sight, container, false);
 
 		final ImageView imageView = (ImageView) view.findViewById(R.id.imageView);
-		final TextView descriptionTextView = (TextView) view.findViewById(R.id.descriptionTextView);
-		final TextView titleTextView = (TextView) view.findViewById(R.id.titleTextView);
-
-
+		mDescriptionEditText = (EditText) view.findViewById(R.id.descriptionEditText);
+		mTitleEditText = (EditText) view.findViewById(R.id.titleEditText);
+		mOriginalDrawable = mDescriptionEditText.getBackground();
+		mDescriptionEditText.setBackground(null);
+		mTitleEditText.setBackground(null);
 		Bundle args = getArguments();
 		final long key = args.getLong(Contract.Sight.KEY);
+		final long uuid = args.getLong(Contract.Sight.UUID);
 
-		mButton = (Button) view.findViewById(R.id.go_to_cam_button);
-		mButton.setOnClickListener(new View.OnClickListener() {
+		mButtonHunt = (Button) view.findViewById(R.id.buttonHunt);
+		mButtonDelete = (Button) view.findViewById(R.id.buttonDelete);
+		mButtonEdit = (Button) view.findViewById(R.id.buttonEdit);
+		mButtonHunt.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				getFragmentManager().beginTransaction().replace(R.id.container, HuntCamFragment.createInstance(key), null).addToBackStack(null).commit();
+				getFragmentManager().beginTransaction().replace(R.id.container, HuntCamFragment.createInstance(key, uuid), null).addToBackStack(null).commit();
+			}
+		});
+		mButtonDelete.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				getActivity().getContentResolver().delete(Contract.Sight.getDeleteSightRemoteUri(uuid), null, null);
+				getActivity().finish();
+			}
+		});
+
+		mButtonEdit.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (!mEditMode) {
+					mButtonEdit.setText("Save");
+					mDescriptionEditText.setBackground(mOriginalDrawable);
+					mTitleEditText.setBackground(mOriginalDrawable);
+					mDescriptionEditText.setEnabled(true);
+					mTitleEditText.setEnabled(true);
+					mEditMode = true;
+				} else {
+
+					com.sighthunt.network.model.Sight sight = new com.sighthunt.network.model.Sight();
+					sight.uuid = uuid;
+					sight.title = mTitleEditText.getText().toString();
+					sight.description = mDescriptionEditText.getText().toString();
+					ContentValues values = Contract.Sight.createContentValues(sight);
+
+					getActivity().getContentResolver().update(Contract.Sight.getEditSightRemoteUri(), values, null, null);
+
+					mButtonEdit.setText("Edit");
+
+					mDescriptionEditText.setBackground(null);
+					mTitleEditText.setBackground(null);
+					mDescriptionEditText.setEnabled(false);
+					mTitleEditText.setEnabled(false);
+					mEditMode = false;
+				}
 			}
 		});
 
 
-		final Uri uri = Contract.Sight.getFetchSightByKeyUri(key);
+		final Uri uri = Contract.Sight.getFetchSightByUUIDUri(uuid);
 
 		getLoaderManager().initLoader(R.id.loader_sight, null, new LoaderManager.LoaderCallbacks<Cursor>() {
 			@Override
@@ -101,8 +151,8 @@ public class SightFragment extends Fragment {
 
 				Picasso.with(getActivity()).load(ImageHelper.getImageUrl(sight.imageKey)).into(imageView);
 
-				descriptionTextView.setText(sight.description);
-				titleTextView.setText(sight.title);
+				mDescriptionEditText.setText(sight.description);
+				mTitleEditText.setText(sight.title);
 
 			}
 
@@ -119,17 +169,25 @@ public class SightFragment extends Fragment {
 		getLoaderManager().initLoader(R.id.loader_check_hunt, null, new LoaderManager.LoaderCallbacks<Cursor>() {
 			@Override
 			public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-				return new CursorLoader(getActivity(), Contract.Hunt.getCheckHuntUri(mAccountUtils.getUsername(), sight.key), null, null, null, null);
+				return new CursorLoader(getActivity(), Contract.Hunt.getCheckHuntUri(mAccountUtils.getUsername(), sight.uuid), null, null, null, null);
 			}
 
 			@Override
 			public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-			boolean isHunted = cursor.moveToFirst();
+				boolean isHunted = cursor.moveToFirst();
 
-				if (mAccountUtils.getUsername().equals(sight.creator) || isHunted) {
-					mButton.setVisibility(View.GONE);
+				if (mAccountUtils.getUsername().equals(sight.creator)) {
+					mButtonHunt.setVisibility(View.GONE);
+					mButtonEdit.setVisibility(View.VISIBLE);
+					mButtonDelete.setVisibility(View.VISIBLE);
 				} else {
-					mButton.setVisibility(View.VISIBLE);
+					if (!isHunted) {
+						mButtonHunt.setVisibility(View.VISIBLE);
+					} else {
+						mButtonHunt.setVisibility(View.GONE);
+					}
+					mButtonEdit.setVisibility(View.GONE);
+					mButtonDelete.setVisibility(View.GONE);
 				}
 			}
 
@@ -140,10 +198,11 @@ public class SightFragment extends Fragment {
 		});
 	}
 
-	public static SightFragment createInstance(long key) {
+	public static SightFragment createInstance(long key, long uuid) {
 		SightFragment fragment = new SightFragment();
 		Bundle args = new Bundle();
 		args.putLong(Contract.Sight.KEY, key);
+		args.putLong(Contract.Sight.UUID, uuid);
 		fragment.setArguments(args);
 		return fragment;
 	}

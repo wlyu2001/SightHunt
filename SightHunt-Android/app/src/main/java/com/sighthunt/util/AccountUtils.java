@@ -11,7 +11,16 @@ import android.util.Log;
 
 import com.facebook.Session;
 import com.sighthunt.inject.Injectable;
+import com.sighthunt.inject.Injector;
+import com.sighthunt.network.ApiManager;
 import com.sighthunt.network.model.User;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 public class AccountUtils implements Injectable {
 
@@ -128,5 +137,48 @@ public class AccountUtils implements Injectable {
 	public void invalidateToken() {
 		mAccountManager.invalidateAuthToken(ACCOUNT_TYPE, mToken);
 		getToken(mActivity, mTokenRequestCallback);
+	}
+
+	public void fetchUser() {
+		// at this point, api manager is already initialized..
+		ApiManager apiManager = Injector.get(ApiManager.class);
+		apiManager.getUserService().getUser(mUsername, new Callback<User>() {
+			@Override
+			public void success(User user, Response response) {
+				mUser = user;
+				notifyUserUpdatedCallbacks();
+			}
+
+			@Override
+			public void failure(RetrofitError error) {
+
+			}
+		});
+	}
+
+	private void notifyUserUpdatedCallbacks() {
+		for(UserUpdatedCallback callback:mUserUpdatedCallbacks) {
+			callback.updated();
+		}
+	}
+
+	public interface UserUpdatedCallback {
+		public void updated();
+	}
+	private List<UserUpdatedCallback> mUserUpdatedCallbacks = new ArrayList<UserUpdatedCallback>();
+	public void addUserUpdatedCallback(UserUpdatedCallback callback) {
+		mUserUpdatedCallbacks.add(callback);
+	}
+	public void removeUserUpdatedCallback(UserUpdatedCallback callback) {
+		mUserUpdatedCallbacks.remove(callback);
+	}
+	private User mUser;
+
+	public User getUer() {
+		return mUser;
+	}
+	public void changePoints(int delta) {
+		mUser.points += delta;
+		notifyUserUpdatedCallbacks();
 	}
 }

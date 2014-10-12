@@ -2,7 +2,7 @@ package com.sighthunt.servlet.sight;
 
 import com.google.appengine.api.datastore.*;
 import com.sighthunt.data.Metadata;
-import com.sighthunt.network.model.SightType;
+import com.sighthunt.network.model.SightFetchType;
 import com.sighthunt.util.HttpServletRequestHelper;
 import com.sighthunt.util.JsonResponseWriter;
 
@@ -31,7 +31,7 @@ public class ListSightsByUserServlet extends HttpServlet {
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
 		List<Long> sightIds = new ArrayList<Long>();
-		if (SightType.CREATED_BY.equals(type)) {
+		if (SightFetchType.CREATED_BY.equals(type)) {
 
 			Query query = new Query(Metadata.Sight.ENTITY_NAME).setKeysOnly();
 
@@ -42,7 +42,7 @@ public class ListSightsByUserServlet extends HttpServlet {
 			for (Entity entity : preparedQuery.asIterable()) {
 				sightIds.add(entity.getKey().getId());
 			}
-		} else if (SightType.HUNTED_BY.equals(type)) {
+		} else if (SightFetchType.HUNTED_BY.equals(type)) {
 			Query query = new Query(Metadata.Hunt.ENTITY_NAME);
 
 			Query.Filter regionFilter = new Query.FilterPredicate(Metadata.Hunt.USER, Query.FilterOperator.EQUAL, user);
@@ -50,7 +50,7 @@ public class ListSightsByUserServlet extends HttpServlet {
 			PreparedQuery preparedQuery = datastore.prepare(query);
 
 			for (Entity entity : preparedQuery.asIterable(fo)) {
-				sightIds.add((Long) entity.getProperty(Metadata.Hunt.SIGHT));
+				sightIds.add((Long) entity.getProperty(Metadata.Hunt.SIGHT_UUID));
 			}
 
 		} else {

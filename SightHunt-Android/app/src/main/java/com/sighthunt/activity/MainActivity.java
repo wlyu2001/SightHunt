@@ -6,17 +6,20 @@ import android.support.v4.app.FragmentTransaction;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.sighthunt.R;
 import com.sighthunt.fragment.BrowseFragment;
 import com.sighthunt.fragment.LocationAwareFragment;
 import com.sighthunt.fragment.ResultsFragment;
 import com.sighthunt.inject.Injector;
+import com.sighthunt.network.model.User;
 import com.sighthunt.util.AccountUtils;
+import com.sighthunt.util.Scores;
 
 import org.opencv.android.OpenCVLoader;
 
-public class MainActivity extends LocationAwareActivity {
+public class MainActivity extends LocationAwareActivity implements AccountUtils.UserUpdatedCallback {
 
 	View mButtonList;
 	View mButtonBrowse;
@@ -64,15 +67,33 @@ public class MainActivity extends LocationAwareActivity {
 		mButtonCam.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				startActivity(new Intent(MainActivity.this, ReleaseActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+
+				if (mAccountUtils.getUer().points > Scores.NEW_SIGHT_COST) {
+					startActivity(new Intent(MainActivity.this, ReleaseActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+				} else {
+					Toast.makeText(MainActivity.this, "You don't have enough points to create new sights, earn more!", Toast.LENGTH_LONG).show();
+				}
 			}
 		});
+	}
+
+	@Override
+	public void onStart() {
+		super.onStart();
+		mAccountUtils.addUserUpdatedCallback(this);
+	}
+
+	@Override
+	public void onStop() {
+		super.onStop();
+		mAccountUtils.removeUserUpdatedCallback(this);
 	}
 
 	private void requestToken() {
 		boolean inProcess = mAccountUtils.getToken(this, new AccountUtils.TokenRequestCallback() {
 			@Override
 			public void onTokenRequestCompleted(String token) {
+				mAccountUtils.fetchUser();
 			}
 
 			@Override
@@ -101,7 +122,7 @@ public class MainActivity extends LocationAwareActivity {
 		ft.commit();
 
 		getActionBar().setTitle(getString(R.string.title_explore).toUpperCase() +
-				(getLocationHelper().isConnected() ? "  " + getLocationHelper().getRegion() : ""));
+				(getLocationHelper().isConnected() ? "  " + getLocationHelper().getLastKnownRegion() : ""));
 		mBrowseShown = true;
 
 	}
@@ -119,7 +140,10 @@ public class MainActivity extends LocationAwareActivity {
 		}
 		ft.commit();
 
-		getActionBar().setTitle(getString(R.string.title_results).toUpperCase());
+		User user = mAccountUtils.getUer();
+
+		getActionBar().setTitle(getString(R.string.title_results).toUpperCase() +
+				(user == null ? "" : "  " + user.points + " points"));
 		mBrowseShown = false;
 	}
 
@@ -160,7 +184,7 @@ public class MainActivity extends LocationAwareActivity {
 	public void onLocationUpdated() {
 		if (mBrowseShown) {
 			getActionBar().setTitle(getString(R.string.title_explore).toUpperCase() +
-					(getLocationHelper().isConnected() ? "  " + getLocationHelper().getRegion() : ""));
+					(getLocationHelper().isConnected() ? "  " + getLocationHelper().getLastKnownRegion() : ""));
 		}
 		if (mBrowseFragment != null) {
 			mBrowseFragment.onLocationUpdated();
@@ -172,4 +196,13 @@ public class MainActivity extends LocationAwareActivity {
 
 	}
 
+	@Override
+	public void updated() {
+		if (!mBrowseShown) {
+			User user = mAccountUtils.getUer();
+			getActionBar().setTitle(getString(R.string.title_results).toUpperCase() +
+					(user == null ? "  " : user.points) + " Points");
+		}
+
+	}
 }

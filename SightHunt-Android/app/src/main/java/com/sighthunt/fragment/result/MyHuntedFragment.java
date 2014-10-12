@@ -1,12 +1,12 @@
 package com.sighthunt.fragment.result;
 
 import com.sighthunt.R;
-import com.sighthunt.network.model.SightSortType;
+import com.sighthunt.network.model.SightFetchType;
 
 public class MyHuntedFragment extends BaseMySightsFragment {
 	@Override
 	public String getType() {
-		return SightSortType.HUNTED_BY;
+		return SightFetchType.HUNTED_BY;
 	}
 
 	@Override

@@ -10,6 +10,8 @@ public class User {
     public int hunts;
     public int votes;
     public int points;
+	public int sights;
     public String email;
     public boolean fb;
+	public long last_hunt;
 }

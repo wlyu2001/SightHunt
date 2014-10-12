@@ -5,7 +5,6 @@ import java.util.Date;
 
 public class Hunt implements Serializable {
 	public String username;
-	public long sight_key;
+	public long uuid;
 	public int vote;
-	public Date time;
 }

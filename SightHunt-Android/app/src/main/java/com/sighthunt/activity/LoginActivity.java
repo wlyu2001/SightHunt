@@ -112,7 +112,7 @@ public class LoginActivity extends AccountAuthenticatorActivity {
 			@Override
 			public void success(User user, Response response) {
 				if (user == null) {
-					Toast.makeText(LoginActivity.this, "Username already taken", Toast.LENGTH_LONG).show();
+					Toast.makeText(LoginActivity.this, getString(R.string.username_taken), Toast.LENGTH_LONG).show();
 				} else {
 					if (!TextUtils.isEmpty(user.token)) {
 						final Intent intent = new Intent();

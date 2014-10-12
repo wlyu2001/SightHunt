@@ -20,9 +20,11 @@ import com.google.android.gms.location.LocationRequest;
 import com.sighthunt.activity.LocationAwareActivity;
 import com.sighthunt.dialog.DialogFactory;
 import com.sighthunt.dialog.DialogPresenter;
+import com.sighthunt.inject.Injector;
 import com.sighthunt.util.PreferenceUtil;
 
-import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 import java.util.Locale;
 
@@ -137,30 +139,47 @@ public class LocationHelper implements
 	}
 
 	public Location getLocation() {
-		return mLocation;
+		return mLocationClient.getLastLocation();
 	}
 
 	String mRegion;
-	Location mLocation;
 
 	@Override
 	public void onLocationChanged(Location location) {
-		mLocation = location;
 		if (location != null) {
-			try {
-				List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-				if (addresses.size() > 0) {
-					mRegion = addresses.get(0).getLocality() + ", " + addresses.get(0).getCountryName();
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			getRegionForLocation(location);
 		}
 
 		mObserver.onLocationUpdated();
 	}
 
-	public String getRegion() {
+	public String getLastKnownRegion() {
 		return mRegion;
+	}
+
+	public String getRegionForLocation(@NotNull Location location) {
+		try {
+			List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+			if (addresses.size() > 0) {
+				mRegion = addresses.get(0).getLocality() + ", " + addresses.get(0).getCountryName();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return mRegion;
+	}
+
+	public String getCurrentRegion() {
+		String region = null;
+		Location location = mLocationClient.getLastLocation();
+		try {
+			List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+			if (addresses.size() > 0) {
+				region = addresses.get(0).getLocality() + ", " + addresses.get(0).getCountryName();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return region;
 	}
 }

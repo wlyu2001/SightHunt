@@ -57,19 +57,27 @@ public abstract class BaseBrowseSightsFragment extends LocationAwareFragment {
 		};
 	}
 
+	private void loadSights(String region) {
+		getLoaderManager().restartLoader(getLoaderId(), null, getLoaderCallbacks(region));
+		getActivity().getContentResolver().query(Contract.Sight.getFetchSightsByRegionRemoteUri(region, getType(), 0, LIMIT), null, null, null, null);
+	}
+
 	@Override
 	public void onLocationUpdated() {
 		super.onLocationUpdated();
 		String region = getRegion();
 		if (region != null) {
-			getLoaderManager().restartLoader(getLoaderId(), null, getLoaderCallbacks(region));
-			getActivity().getContentResolver().query(Contract.Sight.getFetchSightsByRegionRemoteUri(region, getType(), 0, LIMIT), null, null, null, null);
+			loadSights(region);
 		}
 	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		String region = getRegion();
+		if (region != null) {
+			loadSights(region);
+		}
 	}
 
 	private PullToRefreshLayout mPullToRefreshLayout;
@@ -98,7 +106,7 @@ public abstract class BaseBrowseSightsFragment extends LocationAwareFragment {
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				Cursor cursor = (Cursor) mAdapter.getItem(position);
 				Sight sight = Sight.fromCursor(cursor);
-				startActivity(HuntActivity.getIntent(getActivity(), sight.key).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+				startActivity(HuntActivity.getIntent(getActivity(), sight.key, sight.uuid).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
 			}
 		});
 

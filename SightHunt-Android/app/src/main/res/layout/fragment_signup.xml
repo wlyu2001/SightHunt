@@ -8,32 +8,32 @@
         android:id="@+id/username"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Username"/>
+        android:hint="@string/hint_username"/>
 
     <EditText
         android:id="@+id/password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Password"/>
+        android:hint="@string/hint_password"/>
 
 
     <EditText
         android:id="@+id/email"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Email"/>
+        android:hint="@string/hint_email"/>
 
     <EditText
         android:id="@+id/nick"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Nick(Optional)"/>
+        android:hint="@string/hint_nick"/>
 
 
     <Button
     android:id="@+id/signUpButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Sign up"/>
+        android:text="@string/sign_up"/>
 
 </LinearLayout>

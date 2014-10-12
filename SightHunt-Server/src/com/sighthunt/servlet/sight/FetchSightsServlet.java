@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sighthunt.data.Metadata;
 import com.sighthunt.network.model.Sight;
+import com.sighthunt.network.model.SightFetchType;
 import com.sighthunt.util.DBHelper;
 import com.sighthunt.util.HttpServletRequestHelper;
 import com.sighthunt.util.JsonResponseWriter;
@@ -27,29 +28,43 @@ public class FetchSightsServlet extends HttpServlet {
 			return;
 		}
 
-		Type listType = new TypeToken<ArrayList<Long>>() {}.getType();
-		List<Long> sightIds = new Gson().fromJson(req.getReader(), listType);
+		Type listType = new TypeToken<ArrayList<Long>>() {
+		}.getType();
+		List<Long> ids = new Gson().fromJson(req.getReader(), listType);
+		String type = req.getParameter("type");
 
 		MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		List<Sight> sights = new ArrayList<Sight>();
 
-		for (long sightId : sightIds) {
+		if (SightFetchType.BY_KEY.equals(type)) {
+			for (long keyId : ids) {
 
-			Sight sight = (Sight) cache.get(sightId);
-			if (sight == null) {
-				Key key = KeyFactory.createKey(Metadata.Sight.ENTITY_NAME, sightId);
-				Query.Filter keyFilter = new Query.FilterPredicate(Entity.KEY_RESERVED_PROPERTY, Query.FilterOperator.EQUAL, key);
+				Sight sight = (Sight) cache.get(keyId);
+				if (sight == null) {
+					Key key = KeyFactory.createKey(Metadata.Sight.ENTITY_NAME, keyId);
+					Query.Filter keyFilter = new Query.FilterPredicate(Entity.KEY_RESERVED_PROPERTY, Query.FilterOperator.EQUAL, key);
 
-				Query q = new Query(Metadata.Sight.ENTITY_NAME).setFilter(keyFilter);
+					Query q = new Query(Metadata.Sight.ENTITY_NAME).setFilter(keyFilter);
+					PreparedQuery pq = datastore.prepare(q);
+					Entity result = pq.asSingleEntity();
+					sight = DBHelper.createSightObject(result);
+					cache.put(keyId, sight);
+				}
+				sights.add(sight);
+			}
+		} else if (SightFetchType.BY_UUID.equals(type)) {
+			for (long uuid : ids) {
+				Query.Filter filter = new Query.FilterPredicate(Metadata.Sight.UUID, Query.FilterOperator.EQUAL, uuid);
+
+				Query q = new Query(Metadata.Sight.ENTITY_NAME).setFilter(filter);
 				PreparedQuery pq = datastore.prepare(q);
 				Entity result = pq.asSingleEntity();
-				sight = DBHelper.createSightObject(result);
-				cache.put(sightId, sight);
-			}
-			sights.add(sight);
-		}
+				Sight sight = DBHelper.createSightObject(result);
 
+				sights.add(sight);
+			}
+		}
 		JsonResponseWriter.write(resp, sights);
 	}
 }

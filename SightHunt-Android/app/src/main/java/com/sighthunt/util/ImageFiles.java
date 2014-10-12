@@ -13,6 +13,10 @@ public class ImageFiles {
 	public static final File MATCH_IMAGE_THUMB = new File(IMAGE_FOLDER, "match_thumb.jpg");
 
 
+	public static final File ORIGINAL_IMAGE_PREPRO = new File(IMAGE_FOLDER, "original_prepro.jpg");
+	public static final File MATCH_IMAGE_PREPRO = new File(IMAGE_FOLDER, "match_prepro.jpg");
+
+
 	public static final File NEW_IMAGE = new File(IMAGE_FOLDER, "new.jpg");
 	public static final File NEW_IMAGE_THUMB = new File(IMAGE_FOLDER, "new_thumb.jpg");
 
@@ -21,4 +25,5 @@ public class ImageFiles {
 			IMAGE_FOLDER.mkdirs();
 		}
 	}
+
 }

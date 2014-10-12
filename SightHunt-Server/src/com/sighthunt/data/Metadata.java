@@ -16,6 +16,12 @@ public class Metadata {
 		public static final String TOKEN = "token";
 	}
 
+
+	public class DeletedSight {
+
+		public static final String ENTITY_NAME = "DeletedSight";
+		public static final String DELETION_TIME = "time";
+	}
 	public class Sight {
 		public static final String ENTITY_NAME = "Sight";
 
@@ -31,13 +37,14 @@ public class Metadata {
 		public static final String LAT = "lat";
 		public static final String IMAGE_KEY = "image_key";
 		public static final String THUMB_KEY = "thumb_key";
+		public static final String UUID = "uuid";
 	}
 
 	public class Hunt {
 		public static final String ENTITY_NAME = "hunt";
 
 		public static final String VOTE = "vote";
-		public static final String SIGHT = "sight";
+		public static final String SIGHT_UUID = "uuid";
 		public static final String USER = "user";
 		public static final String TIME = "time";
 

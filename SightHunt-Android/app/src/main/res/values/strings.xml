@@ -3,13 +3,14 @@
 
     <string name="app_name">SightHunt</string>
     <string name="title_new">New</string>
-    <string name="title_most_voted">Most Voted</string>
-    <string name="title_most_hunted">Most Hunted</string>
+    <string name="title_most_voted">Hot</string>
+    <string name="title_most_hunted">Popular</string>
 
 
-    <string name="title_created">Created</string>
+    <string name="title_created">Released</string>
 
     <string name="title_hunted">Hunted</string>
+    <string name="title_saved">Saved</string>
 
 
     <string name="action_settings">Settings</string>
@@ -24,5 +25,22 @@
     <string name="dialog_location_message">Sight Hunt needs access to your location. Please turn on location access.</string>
     <string name="dialog_ignore">Ignore</string>
     <string name="dialog_settings">Settings</string>
+
+    <string name="unknown_location">Unknown location</string>
+    <string name="log_out">Log out</string>
+    <string name="facebook_button">Connect With Facebook</string>
+    <string name="sign_up">Sign up</string>
+    <string name="log_in">Signed up already? Login now!</string>
+    <string name="log_in_button">Log in</string>
+
+
+    <string name="hint_username">Username</string>
+    <string name="hint_password">Password</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_nick">Nick(Optional)</string>
+
+    <string name="username_taken">Username already taken</string>
+
+    <string name="forgot_password">Forgot your password?</string>
 
 </resources>

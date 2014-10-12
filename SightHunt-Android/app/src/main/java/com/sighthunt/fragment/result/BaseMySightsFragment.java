@@ -19,6 +19,7 @@ import com.sighthunt.adapter.SightListViewAdapter;
 import com.sighthunt.data.Contract;
 import com.sighthunt.data.model.Sight;
 import com.sighthunt.inject.Injector;
+import com.sighthunt.network.model.SightFetchType;
 import com.sighthunt.util.AccountUtils;
 
 import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
@@ -65,7 +66,6 @@ public abstract class BaseMySightsFragment extends Fragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		getLoaderManager().restartLoader(getLoaderId(), null, mLoaderCallback);
-		getActivity().getContentResolver().query(Contract.Sight.getFetchSightsByUserRemoteUri(mAccountUtils.getUsername(), getType(), 0, LIMIT), null, null, null, null);
 	}
 
 
@@ -81,6 +81,7 @@ public abstract class BaseMySightsFragment extends Fragment {
 				.listener(new OnRefreshListener() {
 					@Override
 					public void onRefreshStarted(View view) {
+					if (SightFetchType.CREATED_BY.equals(getType()))
 						getActivity().getContentResolver().query(Contract.Sight.getFetchSightsByUserRemoteUri(mAccountUtils.getUsername(), getType(), 0, LIMIT), null, null, null, null);
 					}
 				})
@@ -94,7 +95,7 @@ public abstract class BaseMySightsFragment extends Fragment {
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				Cursor cursor = (Cursor) mAdapter.getItem(position);
 				Sight sight = Sight.fromCursor(cursor);
-				startActivity(HuntActivity.getIntent(getActivity(), sight.key).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+				startActivity(HuntActivity.getIntent(getActivity(), sight.key, sight.uuid).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
 			}
 		});
 

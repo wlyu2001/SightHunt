@@ -147,6 +147,12 @@
                 android:hint="Threshold"/>
 
             <Button
+                android:id="@+id/button_prepro"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Prepro"/>
+
+            <Button
                 android:id="@+id/button_compute"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

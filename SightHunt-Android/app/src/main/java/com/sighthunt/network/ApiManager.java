@@ -36,20 +36,26 @@ public class ApiManager implements Injectable {
 		void getSightsByRegion(@Query("region") String region, @Query("type") String type, @Query("offset") int start, @Query("limit") int limit, Callback<List<Long>> callback);
 
 		@POST("/sight/fetch")
-		void getSights(@Body List<Long> sightIds, Callback<List<Sight>> callback);
+		void getSights(@Body List<Long> keys, @Query("type") String type, Callback<List<Sight>> callback);
 
 		@POST("/sight/new")
 		void createSight(@Body Sight sight, Callback<Sight> callback);
 
 		@POST("/sight/edit")
-		void editSight(@Body Sight sight, Callback<String> callback);
+		void editSight(@Body Sight sight, Callback<Long> callback);
+
+		@POST("/sight/delete")
+		void deleteSight(@Query("uuid") long uuid, Callback<Integer> callback);
 
 		// type can be hunted, created
 		@GET("/sight/list_by_user")
 		void getSightsByUser(@Query("user") String id, @Query("type") String type, @Query("offset") int start, @Query("limit") int limit, Callback<List<Long>> callback);
 
 		@GET("/sight/hunt")
-		void huntSight(@Query("user") String username, @Query("sight") long sightId, @Query("vote") int vote, Callback<Integer> callback);
+		void huntSight(@Query("user") String username, @Query("uuid") long uuid, @Query("key") long key, @Query("vote") int vote, Callback<Integer> callback);
+
+		@GET("/sight/fetch_hunts")
+		void fetchHunts(@Query("user") String username, @Query("last_update") long lastUpdate, Callback<List<Long>> callback);
 
 	}
 
@@ -75,6 +81,7 @@ public class ApiManager implements Injectable {
 
 		@POST("/user/edit")
 		void editUser(@Body User user, Callback<User> callback);
+
 	}
 
 

@@ -3,4 +3,5 @@
     <color name="grey_medium">#3e4c52</color>
     <color name="grey_light">#3e4c52</color>
     <color name="grey_dark">#3e4c52</color>
+    <color name="white">#ffffff</color>
 </resources>

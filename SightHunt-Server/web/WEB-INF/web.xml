@@ -15,6 +15,11 @@
     </servlet>
 
     <servlet>
+        <servlet-name>delete-sight</servlet-name>
+        <servlet-class>com.sighthunt.servlet.sight.DeleteSightServlet</servlet-class>
+    </servlet>
+
+    <servlet>
         <servlet-name>list-sights-by-region</servlet-name>
         <servlet-class>com.sighthunt.servlet.sight.ListSightsByRegionServlet</servlet-class>
     </servlet>
@@ -122,5 +127,10 @@
     <servlet-mapping>
         <servlet-name>hunt</servlet-name>
         <url-pattern>/sight/hunt</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>delete-sight</servlet-name>
+        <url-pattern>/sight/delete</url-pattern>
     </servlet-mapping>
 </web-app>

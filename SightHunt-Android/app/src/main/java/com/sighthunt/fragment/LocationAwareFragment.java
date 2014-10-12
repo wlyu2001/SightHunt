@@ -11,32 +11,24 @@ import com.sighthunt.location.LocationHelper;
 
 public abstract class LocationAwareFragment extends Fragment {
 
-	private String mRegion;
-	private Location mLocation;
 	LocationHelper mHelper;
 
 	@Override
-	public void onActivityCreated(Bundle savedInstanceState) {
-		super.onActivityCreated(savedInstanceState);
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
 		mHelper = ((LocationAwareActivity) getActivity()).getLocationHelper();
-		if (mHelper.isConnected()) {
-			mRegion = mHelper.getRegion();
-			mLocation = mHelper.getLocation();
-		}
 	}
 
 	public void onLocationUpdated() {
-		if (mHelper.isConnected()) {
-			mRegion = mHelper.getRegion();
-			mLocation = mHelper.getLocation();
-		}
 	}
 
 	public String getRegion() {
-		return mRegion;
+		if (!mHelper.isConnected()) return null;
+		return mHelper.getCurrentRegion();
 	}
 
 	public Location getCurrentLocation() {
-		return mLocation;
+		if (!mHelper.isConnected()) return null;
+		return mHelper.getLocation();
 	}
 }

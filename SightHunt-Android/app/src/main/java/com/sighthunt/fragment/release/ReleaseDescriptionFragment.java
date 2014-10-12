@@ -65,17 +65,19 @@ public class ReleaseDescriptionFragment extends Fragment {
 				sight.lat = lat;
 				ContentValues values = Contract.Sight.createContentValues(sight);
 				getActivity().getContentResolver().insert(Contract.Sight.getCreateSightRemoteUri(), values);
-				getActivity().getContentResolver().registerContentObserver(Contract.Sight.getCreateSightRemoteUri(), false, new ContentObserver(new Handler(Looper.getMainLooper())) {
-					@Override
-					public void onChange(boolean selfChange) {
-						super.onChange(selfChange);
-						Activity activity = getActivity();
-						if (activity != null) {
-							Toast.makeText(activity, "Sight created", Toast.LENGTH_LONG).show();
-							activity.finish();
-						}
-					}
-				});
+				getActivity().finish();
+				Toast.makeText(getActivity(), "Releasing new sight...", Toast.LENGTH_LONG).show();
+//				getActivity().getContentResolver().registerContentObserver(Contract.Sight.getCreateSightRemoteUri(), false, new ContentObserver(new Handler(Looper.getMainLooper())) {
+//					@Override
+//					public void onChange(boolean selfChange) {
+//						super.onChange(selfChange);
+//						Activity activity = getActivity();
+//						if (activity != null) {
+//							Toast.makeText(activity, "Sight created", Toast.LENGTH_LONG).show();
+//							activity.finish();
+//						}
+//					}
+//				});
 			}
 		});
 

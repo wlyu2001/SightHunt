@@ -55,6 +55,18 @@ public class DBHelper {
 		return userEntity;
 	}
 
+	public static User createUserObject(Entity userEntity) {
+		User user = new User();
+
+		user.screen_name = (String)userEntity.getProperty(Metadata.User.NICK);
+		user.hunts = ((Long)userEntity.getProperty(Metadata.User.HUNTS)).intValue();
+		user.points = ((Long)userEntity.getProperty(Metadata.User.POINTS)).intValue();
+		user.sights = ((Long)userEntity.getProperty(Metadata.User.SIGHTS)).intValue();
+		user.votes = ((Long)userEntity.getProperty(Metadata.User.VOTES)).intValue();
+
+		return user;
+	}
+
 	public static Entity createSightEntity(Sight sight) {
 		Entity sightEntity = new Entity(Metadata.Sight.ENTITY_NAME);
 		sightEntity.setProperty(Metadata.Sight.TITLE, sight.title);
@@ -76,9 +88,8 @@ public class DBHelper {
 	public static Entity createHuntEntity(Hunt hunt) {
 		Entity huntEntity = new Entity(Metadata.Hunt.ENTITY_NAME);
 		huntEntity.setProperty(Metadata.Hunt.USER, hunt.username);
-		huntEntity.setProperty(Metadata.Hunt.SIGHT, hunt.sight_key);
+		huntEntity.setProperty(Metadata.Hunt.SIGHT_UUID, hunt.uuid);
 		huntEntity.setProperty(Metadata.Hunt.VOTE, hunt.vote);
-		huntEntity.setProperty(Metadata.Hunt.TIME, hunt.time);
 		return huntEntity;
 	}
 
@@ -97,7 +108,7 @@ public class DBHelper {
 		sight.lat = new Float((Double) entity.getProperty(Metadata.Sight.LAT));
 		sight.image_key = (String) entity.getProperty(Metadata.Sight.IMAGE_KEY);
 		sight.thumb_key = (String) entity.getProperty(Metadata.Sight.THUMB_KEY);
-
+		sight.uuid = (Long) entity.getProperty(Metadata.Sight.UUID);
 		return sight;
 
 	}
