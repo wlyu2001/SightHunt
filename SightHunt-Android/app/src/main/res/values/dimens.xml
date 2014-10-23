@@ -5,4 +5,8 @@
 
 
     <dimen name="progress_bar_stroke_width">1dp</dimen>
+    <dimen name="hunt_result_text_size">17sp</dimen>
+    <dimen name="hunt_result_margin">20dp</dimen>
+    <dimen name="signup_button_height">42dp</dimen>
+    <dimen name="signup_button_text_size">18sp</dimen>
 </resources>

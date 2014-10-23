@@ -35,6 +35,7 @@ public class SightHuntService extends Service {
 	private static final String ACTION_FETCH_SIGHTS_BY_USER = SIGHTHUNT_SERVICE_URI + ".action.fetch_sights_by_user";
 
 	private static final String ACTION_EDIT_SIGHT = SIGHTHUNT_SERVICE_URI + ".action.edit_sight";
+	private static final String ACTION_REPORT_SIGHT = SIGHTHUNT_SERVICE_URI + ".action.report_sight";
 	private static final String ACTION_DELETE_SIGHT = SIGHTHUNT_SERVICE_URI + ".action.delete_sight";
 	private static final String ACTION_INSERT_SIGHT = SIGHTHUNT_SERVICE_URI + ".action.insert_sight";
 	private static final String ACTION_INSERT_HUNT = SIGHTHUNT_SERVICE_URI + ".action.insert_hunt";
@@ -50,12 +51,6 @@ public class SightHuntService extends Service {
 	AccountUtils mAccountUtils = Injector.get(AccountUtils.class);
 	SightsKeeper mSightsKeeper = Injector.get(SightsKeeper.class);
 
-
-	@Override
-	public void onCreate() {
-
-	}
-
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 
@@ -70,7 +65,7 @@ public class SightHuntService extends Service {
 		} else if (ACTION_FETCH_SIGHTS_BY_USER.equals(action)) {
 			fetchSightsByUser(args);
 		} else if (ACTION_INSERT_SIGHT.equals(action)) {
-			insertSightRemotely(args);
+			insertSight(args);
 		} else if (ACTION_INSERT_HUNT.equals(action)) {
 			insertHunt(args);
 		} else if (ACTION_EDIT_SIGHT.equals(action)) {
@@ -79,6 +74,8 @@ public class SightHuntService extends Service {
 			deleteSight(args);
 		} else if (ACTION_FETCH_HUNTS.equals(action)) {
 			fetchHunts(args);
+		} else if (ACTION_REPORT_SIGHT.equals(action)) {
+			reportSight(args);
 		}
 
 		return START_STICKY;
@@ -88,13 +85,10 @@ public class SightHuntService extends Service {
 	private String mCurrentUser;
 
 	public void notifyRegionBrowse() {
-
-		getContentResolver().notifyChange(Contract.Sight.getFetchSightsByRegionLocalUri(mCurrentRegion, SightFetchType.NEW), null);
-		getContentResolver().notifyChange(Contract.Sight.getFetchSightsByRegionLocalUri(mCurrentRegion, SightFetchType.MOST_HUNTED), null);
-		getContentResolver().notifyChange(Contract.Sight.getFetchSightsByRegionLocalUri(mCurrentRegion, SightFetchType.MOST_VOTED), null);
-		getContentResolver().notifyChange(Contract.Sight.getFetchSightsByUserLocalUri(mCurrentUser, SightFetchType.CREATED_BY), null);
-		getContentResolver().notifyChange(Contract.Sight.getFetchSightsByUserLocalUri(mCurrentUser, SightFetchType.HUNTED_BY), null);
-
+		getContentResolver().notifyChange(Contract.Sight.getBasicTypeUri(SightFetchType.NEW), null);
+		getContentResolver().notifyChange(Contract.Sight.getBasicTypeUri(SightFetchType.MOST_HUNTED), null);
+		getContentResolver().notifyChange(Contract.Sight.getBasicTypeUri(SightFetchType.MOST_VOTED), null);
+		getContentResolver().notifyChange(Contract.Sight.getBasicTypeUri(SightFetchType.CREATED_BY), null);
 	}
 
 	private void deleteSight(Bundle args) {
@@ -103,8 +97,32 @@ public class SightHuntService extends Service {
 			@Override
 			public void success(Integer integer, Response response) {
 				if (integer > 0) {
-					getContentResolver().delete(Contract.Sight.getDeleteSightLocalUri(uuid), Contract.Sight.UUID + " == ? ", new String[]{String.valueOf(uuid)});
+					getContentResolver().delete(Contract.Sight.getDeleteSightLocalUri(uuid), null, null);
 
+					notifyRegionBrowse();
+				}
+			}
+
+			@Override
+			public void failure(RetrofitError error) {
+				Log.i("Failed to edit sight.", error.getMessage());
+			}
+		});
+	}
+
+	private void reportSight(Bundle args) {
+		final long uuid = args.getLong(Contract.Report.SIGHT_UUID);
+		final String reporter = args.getString(Contract.Report.REPORTER);
+		final int reason = args.getInt(Contract.Report.REASON);
+		mApiManager.getSightService().reportSight(uuid, reporter, reason, new Callback<Integer>() {
+			@Override
+			public void success(Integer integer, Response response) {
+				if (integer > 0) {
+					ContentValues values = new ContentValues();
+					values.put(Contract.Report.REASON, reason);
+					values.put(Contract.Report.REPORTER, reporter);
+					values.put(Contract.Report.SIGHT_UUID, uuid);
+					getContentResolver().insert(Contract.Report.getInsertReportLocalUri(), values);
 					notifyRegionBrowse();
 				}
 			}
@@ -133,7 +151,7 @@ public class SightHuntService extends Service {
 				values.put(Contract.Sight.DESCRIPTION, description);
 				values.put(Contract.Sight.KEY, key);
 
-				getContentResolver().update(Contract.Sight.getEditSightLocalUri(), values, Contract.Sight.UUID + " == ? ", new String[]{String.valueOf(uuid)});
+				getContentResolver().update(Contract.Sight.getEditSightLocalUri(uuid), values, null, null);
 				mSightsKeeper.addCachedSightKey(key, uuid);
 			}
 
@@ -150,15 +168,28 @@ public class SightHuntService extends Service {
 		final String username = args.getString(Contract.Hunt.USER);
 		final int vote = args.getInt(Contract.Hunt.VOTE);
 
-		mApiManager.getSightService().huntSight(username, uuid, key, vote, new Callback<Integer>() {
+		mApiManager.getSightService().huntSight(username, uuid, key, vote, new Callback<List<Long>>() {
 			@Override
-			public void success(Integer result, Response response) {
+			public void success(List<Long> results, Response response) {
+				long key = results.get(0);
+				long time = results.get(1);
+				insertHuntLocally(username, uuid);
+				PreferenceUtil.saveHuntsLastUpdate(SightHuntService.this, username, time);
+				getContentResolver().notifyChange(Contract.Hunt.getInsertHuntLocalUri(), null);
+				mAccountUtils.changePoints(1);
 
-				if (result > 0) {
-					insertHuntLocally(username, uuid);
-					getContentResolver().notifyChange(Contract.Hunt.getInsertHuntRemoteUri(), null);
-					mAccountUtils.changePoints(1);
+				if (key != 0) {
+					// update the key of the sight
+					ContentValues values = new ContentValues();
+					values.put(Contract.Sight.KEY, key);
+					getContentResolver().update(Contract.Sight.getEditSightLocalUri(uuid), values, null, null);
+				} else {
+					// hualla. the sight is delete already
+					getContentResolver().delete(Contract.Sight.getDeleteSightLocalUri(uuid), null, null);
+
+					notifyRegionBrowse();
 				}
+
 			}
 
 			@Override
@@ -171,7 +202,7 @@ public class SightHuntService extends Service {
 	}
 
 
-	private void insertSightRemotely(Bundle args) {
+	private void insertSight(Bundle args) {
 		final Sight sight = new Sight();
 		sight.region = args.getString(Contract.Sight.REGION);
 		sight.description = args.getString(Contract.Sight.DESCRIPTION);
@@ -223,7 +254,7 @@ public class SightHuntService extends Service {
 		final String type = args.getString(ARG_SIGHT_TYPE);
 		final int limit = args.getInt(ARG_LIMIT);
 		final int offset = args.getInt(ARG_OFFSET);
-		final Uri uri = Contract.Sight.getFetchSightsByRegionLocalUri(region, type);
+		final Uri uri = Contract.Sight.getBasicTypeUri(type);
 
 		mApiManager.getSightService().getSightsByRegion(region, type, offset, limit, new Callback<List<Long>>() {
 			@Override
@@ -238,8 +269,6 @@ public class SightHuntService extends Service {
 		});
 	}
 
-	private void fetchDeletes(Bundle args) {
-	}
 
 	private void fetchHunts(Bundle args) {
 		final String user = args.getString(ARG_USER);
@@ -302,7 +331,7 @@ public class SightHuntService extends Service {
 		final String type = args.getString(ARG_SIGHT_TYPE);
 		final int limit = args.getInt(ARG_LIMIT);
 		final int offset = args.getInt(ARG_OFFSET);
-		final Uri uri = Contract.Sight.getFetchSightsByUserLocalUri(user, type);
+		final Uri uri = Contract.Sight.getBasicTypeUri(type);
 
 		mApiManager.getSightService().getSightsByUser(user, type, offset, limit, new Callback<List<Long>>() {
 			@Override
@@ -405,6 +434,14 @@ public class SightHuntService extends Service {
 		return i;
 	}
 
+	public static Intent getReportSightIntent(Context context, long uuid, String user, int reason) {
+		Intent i = new Intent(ACTION_REPORT_SIGHT);
+		i.setClass(context, SightHuntService.class);
+		i.putExtra(Contract.Report.SIGHT_UUID, uuid);
+		i.putExtra(Contract.Report.REPORTER, user);
+		i.putExtra(Contract.Report.REASON, reason);
+		return i;
+	}
 
 	@Override
 	public IBinder onBind(Intent intent) {

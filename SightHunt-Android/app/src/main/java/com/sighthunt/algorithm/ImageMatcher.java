@@ -13,6 +13,7 @@ import org.opencv.features2d.DMatch;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
+import org.opencv.features2d.KeyPoint;
 import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 
@@ -23,36 +24,38 @@ import java.util.List;
 public class ImageMatcher {
 
 	private int mPrepro;
-	FeatureDetector mFeatureDetector;
-	DescriptorExtractor mDescriptorExtractor;
-	DescriptorMatcher mMatcher;
-	float mThreshold;
+	private FeatureDetector mFeatureDetector;
+	private DescriptorExtractor mDescriptorExtractor;
+	private DescriptorMatcher mMatcher;
+	private float mThreshold;
+	private static final double DISTANCE2_THRESHOLD = 150;
 
-	MatOfKeyPoint mKeyPoints1;
+	private MatOfKeyPoint mKeyPoints1;
+	private MatOfKeyPoint mKeyPoints2;
+	private List<DMatch> mMatches;
+	private float mHeight;
+
+	private float mWidth;
 
 	public MatOfKeyPoint getKeyPoints1() {
 		return mKeyPoints1;
 	}
 
-	MatOfKeyPoint mKeyPoints2;
 
 	public MatOfKeyPoint getKeyPoints2() {
 		return mKeyPoints2;
 	}
 
-	List<DMatch> mMatches;
 
 	public List<DMatch> getMatches() {
 		return mMatches;
 	}
 
-	float mHeight;
 
 	public float getHeight() {
 		return mHeight;
 	}
 
-	float mWidth;
 
 	public float getWidth() {
 		return mWidth;
@@ -67,7 +70,7 @@ public class ImageMatcher {
 		mPrepro = prepro;
 	}
 
-	public float getImageMatchingScore() {
+	public int getImageMatchingScore() {
 
 		Mat image1 = null;
 		Mat image2 = null;
@@ -116,7 +119,28 @@ public class ImageMatcher {
 			}
 		}
 
-		return 0;
+
+
+		return getMaxConsistentMatch();
+	}
+
+	private int getMaxConsistentMatch() {
+		// keypoint1, keypoint2, matches
+		KeyPoint[] keypoints1 = mKeyPoints1.toArray();
+		KeyPoint[] keypoints2 = mKeyPoints2.toArray();
+		int count = 0;
+		for (DMatch match: mMatches) {
+			KeyPoint keyPoint1 = keypoints1[match.queryIdx];
+			KeyPoint keyPoint2 = keypoints2[match.trainIdx];
+			if (getDistance2BetweenKeypoints(keyPoint1, keyPoint2) < DISTANCE2_THRESHOLD) {
+				count ++;
+			}
+		}
+		return count;
+	}
+
+	private double getDistance2BetweenKeypoints(KeyPoint kp1, KeyPoint kp2) {
+		return Math.pow(kp1.pt.x - kp2.pt.x, 2) + Math.pow(kp1.pt.y - kp2.pt.y, 2);
 	}
 
 	private Mat binaryFile(File in, File out) {

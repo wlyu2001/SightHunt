@@ -18,6 +18,7 @@ import android.widget.Toast;
 import com.sighthunt.R;
 import com.sighthunt.data.Contract;
 import com.sighthunt.inject.Injector;
+import com.sighthunt.network.SightHuntService;
 import com.sighthunt.network.model.Sight;
 import com.sighthunt.util.AccountUtils;
 import com.sighthunt.util.ImageFiles;
@@ -63,21 +64,9 @@ public class ReleaseDescriptionFragment extends Fragment {
 				sight.time_created = new Date().getTime();
 				sight.lon = lon;
 				sight.lat = lat;
-				ContentValues values = Contract.Sight.createContentValues(sight);
-				getActivity().getContentResolver().insert(Contract.Sight.getCreateSightRemoteUri(), values);
+				getActivity().startService(SightHuntService.getInsertSightIntent(getActivity(), sight));
 				getActivity().finish();
 				Toast.makeText(getActivity(), "Releasing new sight...", Toast.LENGTH_LONG).show();
-//				getActivity().getContentResolver().registerContentObserver(Contract.Sight.getCreateSightRemoteUri(), false, new ContentObserver(new Handler(Looper.getMainLooper())) {
-//					@Override
-//					public void onChange(boolean selfChange) {
-//						super.onChange(selfChange);
-//						Activity activity = getActivity();
-//						if (activity != null) {
-//							Toast.makeText(activity, "Sight created", Toast.LENGTH_LONG).show();
-//							activity.finish();
-//						}
-//					}
-//				});
 			}
 		});
 

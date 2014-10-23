@@ -6,26 +6,28 @@ import android.support.v4.app.FragmentTransaction;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.sighthunt.R;
 import com.sighthunt.fragment.BrowseFragment;
-import com.sighthunt.fragment.LocationAwareFragment;
 import com.sighthunt.fragment.ResultsFragment;
 import com.sighthunt.inject.Injector;
+import com.sighthunt.network.SightHuntService;
 import com.sighthunt.network.model.User;
 import com.sighthunt.util.AccountUtils;
 import com.sighthunt.util.Scores;
 
+import org.jetbrains.annotations.NotNull;
 import org.opencv.android.OpenCVLoader;
 
 public class MainActivity extends LocationAwareActivity implements AccountUtils.UserUpdatedCallback {
 
-	View mButtonList;
-	View mButtonBrowse;
-	View mButtonCam;
+	ImageButton mButtonList;
+	ImageButton mButtonBrowse;
+	ImageButton mButtonCam;
 
-	LocationAwareFragment mBrowseFragment;
+	BrowseFragment mBrowseFragment;
 	private String TAG_BROWSE_FRAGMENT = "tag_browse_fragment";
 	private String TAG_RESULT_FRAGMENT = "tag_result_fragment";
 	ResultsFragment mResultsFragment;
@@ -39,14 +41,18 @@ public class MainActivity extends LocationAwareActivity implements AccountUtils.
 
 		getActionBar().setIcon(android.R.color.transparent);
 
-		mButtonList = findViewById(R.id.button_list);
-		mButtonBrowse = findViewById(R.id.button_browse);
-		mButtonCam = findViewById(R.id.button_cam);
-
+		mButtonList = (ImageButton) findViewById(R.id.button_list);
+		mButtonBrowse = (ImageButton) findViewById(R.id.button_browse);
+		mButtonCam = (ImageButton) findViewById(R.id.button_cam);
 		mBrowseFragment = BrowseFragment.createInstance();
 		mResultsFragment = ResultsFragment.createInstance();
 
-		showBrowseFragment();
+		FragmentTransaction ft =
+				getSupportFragmentManager().beginTransaction();
+		ft.add(R.id.container, mBrowseFragment, TAG_BROWSE_FRAGMENT).commit();
+		String region = getLocationHelper().getCurrentRegion();
+		getActionBar().setTitle(getString(R.string.title_explore).toUpperCase() + "  " + (region == null ? "Unknown region" : region));
+		mButtonBrowse.setSelected(true);
 
 		mButtonList.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -67,14 +73,28 @@ public class MainActivity extends LocationAwareActivity implements AccountUtils.
 		mButtonCam.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-
-				if (mAccountUtils.getUer().points > Scores.NEW_SIGHT_COST) {
-					startActivity(new Intent(MainActivity.this, ReleaseActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+				if (mAccountUtils.getUer() != null) {
+					tryOpenReleaseActivity(mAccountUtils.getUer());
 				} else {
-					Toast.makeText(MainActivity.this, "You don't have enough points to create new sights, earn more!", Toast.LENGTH_LONG).show();
+					mRequestToOpenReleaseActivity = true;
+					mAccountUtils.fetchUser();
 				}
 			}
 		});
+	}
+
+	private boolean mRequestToOpenReleaseActivity = false;
+
+	private void tryOpenReleaseActivity(@NotNull User user) {
+		if (getLocationHelper().getCurrentRegion() == null) {
+			Toast.makeText(MainActivity.this, getString(R.string.release_in_unknown_region), Toast.LENGTH_LONG).show();
+			return;
+		}
+		if (user.points > Scores.NEW_SIGHT_COST) {
+			startActivity(new Intent(MainActivity.this, ReleaseActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+		} else {
+			Toast.makeText(MainActivity.this, getString(R.string.not_enough_points), Toast.LENGTH_LONG).show();
+		}
 	}
 
 	@Override
@@ -93,6 +113,7 @@ public class MainActivity extends LocationAwareActivity implements AccountUtils.
 		boolean inProcess = mAccountUtils.getToken(this, new AccountUtils.TokenRequestCallback() {
 			@Override
 			public void onTokenRequestCompleted(String token) {
+				startService(SightHuntService.getFetchHuntsIntent(MainActivity.this, mAccountUtils.getUsername()));
 				mAccountUtils.fetchUser();
 			}
 
@@ -106,42 +127,31 @@ public class MainActivity extends LocationAwareActivity implements AccountUtils.
 		}
 	}
 
-	boolean mBrowseShown;
-
 	private void showBrowseFragment() {
 		FragmentTransaction ft =
 				getSupportFragmentManager().beginTransaction();
-		if (mBrowseFragment.isAdded()) {
-			ft.show(mBrowseFragment);
-		} else {
-			ft.add(R.id.container, mBrowseFragment, TAG_BROWSE_FRAGMENT);
-		}
-		if (mResultsFragment.isAdded()) {
-			ft.hide(mResultsFragment);
-		}
+
+		ft.replace(R.id.container, mBrowseFragment, TAG_BROWSE_FRAGMENT).addToBackStack(TAG_BROWSE_FRAGMENT);
 		ft.commit();
+	}
 
-		getActionBar().setTitle(getString(R.string.title_explore).toUpperCase() +
-				(getLocationHelper().isConnected() ? "  " + getLocationHelper().getLastKnownRegion() : ""));
-		mBrowseShown = true;
+	public void updateUIForBrowse() {
+		showRegion();
+		mButtonBrowse.setSelected(true);
+		mButtonList.setSelected(false);
+	}
 
+	public void updateUIForResult() {
+		showPoints();
+		mButtonList.setSelected(true);
+		mButtonBrowse.setSelected(false);
 	}
 
 	private void showListFragment() {
 		FragmentTransaction ft =
 				getSupportFragmentManager().beginTransaction();
-		if (mResultsFragment.isAdded()) {
-			ft.show(mResultsFragment);
-		} else {
-			ft.add(R.id.container, mResultsFragment, TAG_RESULT_FRAGMENT);
-		}
-		if (mBrowseFragment.isAdded()) {
-			ft.hide(mBrowseFragment);
-		}
+		ft.replace(R.id.container, mResultsFragment, TAG_RESULT_FRAGMENT).addToBackStack(TAG_RESULT_FRAGMENT);
 		ft.commit();
-
-		showPoints();
-		mBrowseShown = false;
 	}
 
 	@Override
@@ -159,9 +169,7 @@ public class MainActivity extends LocationAwareActivity implements AccountUtils.
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-			return true;
-		} else if (id == R.id.action_logout) {
+		if (id == R.id.action_logout) {
 			mAccountUtils.logoutAndClearAccounts(new AccountUtils.ClearAccountCallback() {
 				@Override
 				public void onClearAccount() {
@@ -178,13 +186,12 @@ public class MainActivity extends LocationAwareActivity implements AccountUtils.
 	}
 
 	@Override
-	public void onLocationUpdated() {
-		if (mBrowseShown) {
-			getActionBar().setTitle(getString(R.string.title_explore).toUpperCase() +
-					(getLocationHelper().isConnected() ? "  " + getLocationHelper().getLastKnownRegion() : ""));
+	public void onRegionUpdated(String region, boolean changed) {
+		if (mBrowseFragment.isVisible()) {
+			getActionBar().setTitle(getString(R.string.title_explore).toUpperCase() + "  " + (region == null ? getString(R.string.unknown_region) : region));
 		}
 		if (mBrowseFragment != null) {
-			mBrowseFragment.onLocationUpdated();
+			mBrowseFragment.onRegionUpdated(region, changed);
 		}
 	}
 
@@ -194,15 +201,28 @@ public class MainActivity extends LocationAwareActivity implements AccountUtils.
 	}
 
 	@Override
-	public void updated() {
-		if (!mBrowseShown) {
+	public void userUpdated() {
+		if (!mBrowseFragment.isVisible()) {
 			showPoints();
 		}
+		if (mRequestToOpenReleaseActivity) {
+			if (mAccountUtils.getUer() != null) {
+				tryOpenReleaseActivity(mAccountUtils.getUer());
+			} else {
+				Toast.makeText(MainActivity.this, getString(R.string.user_info_unavailable), Toast.LENGTH_LONG).show();
+			}
+			mRequestToOpenReleaseActivity = false;
+		}
+	}
+
+	private void showRegion() {
+		String region = getLocationHelper().getCurrentRegion();
+		getActionBar().setTitle(getString(R.string.title_explore).toUpperCase() + "  " + (region == null ? getString(R.string.unknown_region) : region));
 	}
 
 	private void showPoints() {
 		User user = mAccountUtils.getUer();
 		getActionBar().setTitle(getString(R.string.title_results).toUpperCase() +
-				user == null ? "" : "  "+user.points + " points");
+				(user == null ? "" : "  " + user.points + " points"));
 	}
 }

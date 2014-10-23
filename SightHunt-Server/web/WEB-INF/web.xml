@@ -74,6 +74,11 @@
         <servlet-class>com.sighthunt.servlet.sight.HuntServlet</servlet-class>
     </servlet>
 
+    <servlet>
+        <servlet-name>report</servlet-name>
+        <servlet-class>com.sighthunt.servlet.sight.ReportSightServlet</servlet-class>
+    </servlet>
+
     <servlet-mapping>
         <servlet-name>new-sight</servlet-name>
         <url-pattern>/sight/new</url-pattern>
@@ -142,6 +147,11 @@
     <servlet-mapping>
         <servlet-name>fetch-hunts</servlet-name>
         <url-pattern>/sight/fetch_hunts</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>report</servlet-name>
+        <url-pattern>/sight/report</url-pattern>
     </servlet-mapping>
 
 

@@ -10,11 +10,12 @@
         android:scaleType="centerCrop"/>
 
     <LinearLayout
+        android:id="@+id/logo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="50dp">
+        android:layout_marginTop="40dp">
 
 
         <ImageView
@@ -33,6 +34,37 @@
     </LinearLayout>
 
     <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/logo"
+        android:layout_margin="20dp"
+        android:orientation="vertical">
+
+        <AdapterViewFlipper
+            android:id="@+id/adapterViewFlipper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+
+        </AdapterViewFlipper>
+
+        <com.thehayro.view.InfiniteViewPager
+            android:id="@+id/viewPager"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:overScrollMode="never"
+            android:visibility="gone"/>
+
+        <com.sighthunt.view.ViewPagerIndicator
+            android:id="@+id/viewPagerIndicator"
+            indicatorSize="5dp"
+            indicatorSpacing="3dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"/>
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -40,15 +72,16 @@
         android:gravity="center_horizontal"
         android:orientation="vertical"
         android:paddingBottom="20dp"
-        android:paddingTop="40dp"
         android:paddingLeft="40dp"
-        android:paddingRight="40dp">
+        android:paddingRight="40dp"
+        android:paddingTop="40dp">
 
         <com.facebook.widget.LoginButton
-            xmlns:fb="http://schemas.android.com/apk/res-auto"
             android:id="@+id/authButton"
+            style="@style/FacebookLoginButton"
+            xmlns:fb="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="@dimen/signup_button_height"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="30dp"
             fb:login_text="@string/facebook_button"/>
@@ -56,16 +89,18 @@
         <Button
             android:id="@+id/signUpButton"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="@dimen/signup_button_height"
             android:layout_marginTop="10dp"
-            android:text="@string/sign_up"/>
+            android:background="@color/grey_light"
+            android:text="@string/sign_up"
+            android:textSize="@dimen/signup_button_text_size"/>
 
         <TextView
             android:id="@+id/loginText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/log_in"
-            android:layout_marginTop="10dp"/>
+            android:layout_marginTop="10dp"
+            android:text="@string/log_in"/>
     </LinearLayout>
 
 </RelativeLayout>

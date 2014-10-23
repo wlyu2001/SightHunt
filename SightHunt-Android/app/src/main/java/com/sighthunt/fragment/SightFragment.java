@@ -1,6 +1,8 @@
 package com.sighthunt.fragment;
 
-import android.content.ContentValues;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -10,12 +12,17 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ListView;
 
 import com.sighthunt.R;
 import com.sighthunt.data.Contract;
@@ -34,14 +41,18 @@ import java.io.FileOutputStream;
 
 public class SightFragment extends Fragment {
 
-	AccountUtils mAccountUtils = Injector.get(AccountUtils.class);
-	Button mButtonHunt;
-	Button mButtonEdit;
-	Button mButtonDelete;
-	EditText mDescriptionEditText;
-	EditText mTitleEditText;
-	Drawable mOriginalDrawable;
+	private AccountUtils mAccountUtils = Injector.get(AccountUtils.class);
+	private Button mButtonHunt;
+	private Button mButtonEdit;
+	private Button mButtonShare;
+	private EditText mDescriptionEditText;
+	private EditText mTitleEditText;
+	private Drawable mOriginalDrawable;
 	private boolean mEditMode;
+	private boolean mOwnSight;
+	private MenuItem mMenuItemFlag;
+	private MenuItem mMenuItemDelete;
+
 
 	Target mTarget = new Target() {
 		@Override
@@ -80,23 +91,29 @@ public class SightFragment extends Fragment {
 		mDescriptionEditText.setBackground(null);
 		mTitleEditText.setBackground(null);
 		Bundle args = getArguments();
-		final long key = args.getLong(Contract.Sight.KEY);
-		final long uuid = args.getLong(Contract.Sight.UUID);
+		final Sight s = args.getParcelable(Sight.ARG);
+
+		setHasOptionsMenu(true);
 
 		mButtonHunt = (Button) view.findViewById(R.id.buttonHunt);
-		mButtonDelete = (Button) view.findViewById(R.id.buttonDelete);
 		mButtonEdit = (Button) view.findViewById(R.id.buttonEdit);
+		mButtonShare = (Button) view.findViewById(R.id.buttonShare);
 		mButtonHunt.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				getFragmentManager().beginTransaction().replace(R.id.container, HuntCamFragment.createInstance(key, uuid), null).addToBackStack(null).commit();
+				getFragmentManager().beginTransaction().replace(R.id.container, HuntCamFragment.createInstance(s), null).addToBackStack(null).commit();
 			}
 		});
-		mButtonDelete.setOnClickListener(new View.OnClickListener() {
+
+		mButtonShare.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				getActivity().startService(SightHuntService.getDeleteSightIntent(getActivity(),uuid));
-				getActivity().finish();
+				Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+				sharingIntent.setType("image/*");
+				sharingIntent.putExtra(Intent.EXTRA_SUBJECT, "Sight hunt in " + s.region);
+				sharingIntent.putExtra(Intent.EXTRA_TEXT, s.title + "\n" + s.description);
+				sharingIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(ImageFiles.ORIGINAL_IMAGE));
+				startActivity(Intent.createChooser(sharingIntent, "Share via"));
 			}
 		});
 
@@ -112,12 +129,16 @@ public class SightFragment extends Fragment {
 					mEditMode = true;
 				} else {
 
-					com.sighthunt.network.model.Sight sight = new com.sighthunt.network.model.Sight();
-					sight.uuid = uuid;
-					sight.title = mTitleEditText.getText().toString();
-					sight.description = mDescriptionEditText.getText().toString();
-					getActivity().startService(SightHuntService.getEditSightIntent(getActivity(), sight));
+					String description = mDescriptionEditText.getText().toString();
+					String title = mTitleEditText.getText().toString();
 
+					if (!TextUtils.equals(description, s.description) || !TextUtils.equals(title, s.title)) {
+						com.sighthunt.network.model.Sight sight = new com.sighthunt.network.model.Sight();
+						sight.uuid = s.uuid;
+						sight.title = title;
+						sight.description = description;
+						getActivity().startService(SightHuntService.getEditSightIntent(getActivity(), sight));
+					}
 					mButtonEdit.setText("Edit");
 
 					mDescriptionEditText.setBackground(null);
@@ -130,7 +151,7 @@ public class SightFragment extends Fragment {
 		});
 
 
-		final Uri uri = Contract.Sight.getFetchSightByUUIDUri(uuid);
+		final Uri uri = Contract.Sight.getFetchSightByUUIDUri(s.uuid);
 
 		getLoaderManager().initLoader(R.id.loader_sight, null, new LoaderManager.LoaderCallbacks<Cursor>() {
 			@Override
@@ -164,6 +185,48 @@ public class SightFragment extends Fragment {
 		return view;
 	}
 
+	private DialogInterface.OnClickListener reportDialogListener = new DialogInterface.OnClickListener() {
+		@Override
+		public void onClick(DialogInterface dialog, int which) {
+			Sight s = getArguments().getParcelable(Sight.ARG);
+			ListView lw = ((AlertDialog) dialog).getListView();
+			int position = lw.getCheckedItemPosition();
+			getActivity().startService(SightHuntService.getReportSightIntent(getActivity(), s.uuid, mAccountUtils.getUsername(), position));
+			getActivity().finish();
+		}
+	};
+
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		if (!mOwnSight) {
+			mMenuItemFlag = menu.add(R.string.button_flag);
+			mMenuItemFlag.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+				@Override
+				public boolean onMenuItemClick(MenuItem item) {
+					AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+					builder.setTitle(R.string.title_report);
+					builder.setSingleChoiceItems(R.array.report_reasons, 0, null);
+					builder.setPositiveButton(R.string.button_report_ok, reportDialogListener);
+					AlertDialog alertDialog = builder.create();
+					alertDialog.show();
+					return false;
+				}
+			});
+		} else {
+			mMenuItemDelete = menu.add(R.string.button_delete);
+			mMenuItemDelete.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+				@Override
+				public boolean onMenuItemClick(MenuItem item) {
+					Sight s = getArguments().getParcelable(Sight.ARG);
+					getActivity().startService(SightHuntService.getDeleteSightIntent(getActivity(), s.uuid));
+					getActivity().finish();
+					return true;
+				}
+			});
+		}
+		super.onCreateOptionsMenu(menu, inflater);
+	}
+
 	private void checkHunt(final Sight sight) {
 		getLoaderManager().initLoader(R.id.loader_check_hunt, null, new LoaderManager.LoaderCallbacks<Cursor>() {
 			@Override
@@ -178,16 +241,21 @@ public class SightFragment extends Fragment {
 				if (mAccountUtils.getUsername().equals(sight.creator)) {
 					mButtonHunt.setVisibility(View.GONE);
 					mButtonEdit.setVisibility(View.VISIBLE);
-					mButtonDelete.setVisibility(View.VISIBLE);
+					mButtonShare.setVisibility(View.VISIBLE);
+					mOwnSight = true;
 				} else {
+					mDescriptionEditText.setHint(R.string.hint_description_hunt);
+					mTitleEditText.setHint(R.string.hint_title_hunt);
 					if (!isHunted) {
 						mButtonHunt.setVisibility(View.VISIBLE);
 					} else {
 						mButtonHunt.setVisibility(View.GONE);
 					}
 					mButtonEdit.setVisibility(View.GONE);
-					mButtonDelete.setVisibility(View.GONE);
+					mButtonShare.setVisibility(View.VISIBLE);
+					mOwnSight = false;
 				}
+				getActivity().invalidateOptionsMenu();
 			}
 
 			@Override
@@ -197,11 +265,10 @@ public class SightFragment extends Fragment {
 		});
 	}
 
-	public static SightFragment createInstance(long key, long uuid) {
+	public static SightFragment createInstance(Sight sight) {
 		SightFragment fragment = new SightFragment();
 		Bundle args = new Bundle();
-		args.putLong(Contract.Sight.KEY, key);
-		args.putLong(Contract.Sight.UUID, uuid);
+		args.putParcelable(Sight.ARG, sight);
 		fragment.setArguments(args);
 		return fragment;
 	}

@@ -1,10 +1,13 @@
 package com.sighthunt.data.model;
 
 import android.database.Cursor;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import com.sighthunt.data.Contract;
 
-public class Sight {
+public class Sight implements Parcelable {
+	public static final String ARG = "arg";
 	public static final String[] PROJECTION = {
 			Contract.Sight.KEY,
 			Contract.Sight.TITLE,
@@ -69,4 +72,59 @@ public class Sight {
 
 		return sight;
 	}
+
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	public Sight() {
+	}
+
+	public Sight(Parcel in) {
+		String[] data = new String[13];
+
+		in.readStringArray(data);
+		this.key = Long.parseLong(data[0]);
+		this.title = data[1];
+		this.description = data[2];
+		this.imageKey = data[3];
+		this.thumbKey = data[4];
+		this.creator = data[5];
+		this.region = data[6];
+		this.lon = Float.parseFloat(data[7]);
+		this.lat = Float.parseFloat(data[8]);
+		this.timeCreated = Long.parseLong(data[9]);
+		this.votes = Integer.parseInt(data[10]);
+		this.hunts = Integer.parseInt(data[11]);
+		this.uuid = Long.parseLong(data[12]);
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeStringArray(new String[]{
+				String.valueOf(this.key),
+				this.title,
+				this.description,
+				this.imageKey,
+				this.thumbKey,
+				this.creator,
+				this.region,
+				String.valueOf(this.lon),
+				String.valueOf(this.lat),
+				String.valueOf(this.timeCreated),
+				String.valueOf(this.votes),
+				String.valueOf(this.hunts),
+				String.valueOf(this.uuid)});
+	}
+
+	public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+		public Sight createFromParcel(Parcel in) {
+			return new Sight(in);
+		}
+
+		public Sight[] newArray(int size) {
+			return new Sight[size];
+		}
+	};
 }

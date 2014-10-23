@@ -18,10 +18,18 @@ public class Metadata {
 
 
 	public class DeletedSight {
-
 		public static final String ENTITY_NAME = "DeletedSight";
 		public static final String DELETION_TIME = "time";
 	}
+
+	public class ReportedSight {
+		public static final String ENTITY_NAME = "ReportedSight";
+		public static final String REPORT_TIME = "time";
+		public static final String REASON = "reason";
+		public static final String REPORTER = "reporter";
+		public static final String SIGHT_UUID = "uuid";
+	}
+
 	public class Sight {
 		public static final String ENTITY_NAME = "Sight";
 

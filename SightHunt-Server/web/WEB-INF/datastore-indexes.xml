@@ -15,4 +15,9 @@
         <property name="votes" direction="desc"/>
     </datastore-index>
 
+    <datastore-index kind="hunt" ancestor="false" source="manual">
+        <property name="user" direction="asc"/>
+        <property name="time" direction="asc"/>
+    </datastore-index>
+
 </datastore-indexes>

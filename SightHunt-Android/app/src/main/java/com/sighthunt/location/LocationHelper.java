@@ -20,7 +20,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.sighthunt.activity.LocationAwareActivity;
 import com.sighthunt.dialog.DialogFactory;
 import com.sighthunt.dialog.DialogPresenter;
-import com.sighthunt.inject.Injector;
+import com.sighthunt.util.NetworkHelper;
 import com.sighthunt.util.PreferenceUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -52,9 +52,9 @@ public class LocationHelper implements
 	public interface OnLocationObserver {
 		public void onLocationConnected();
 
-		public void onLocationUpdated();
-
 		public void onLocationDisconnected();
+
+		public void onRegionUpdated(String region, boolean changed);
 	}
 
 	public boolean isConnected() {
@@ -139,47 +139,64 @@ public class LocationHelper implements
 	}
 
 	public Location getLocation() {
-		return mLocationClient.getLastLocation();
+		if (isConnected())
+			return mLocationClient.getLastLocation();
+		else return null;
 	}
 
 	String mRegion;
 
 	@Override
 	public void onLocationChanged(Location location) {
-		if (location != null) {
-			getRegionForLocation(location);
-		}
-
-		mObserver.onLocationUpdated();
-	}
-
-	public String getLastKnownRegion() {
-		return mRegion;
-	}
-
-	public String getRegionForLocation(@NotNull Location location) {
-		try {
-			List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-			if (addresses.size() > 0) {
-				mRegion = addresses.get(0).getLocality() + ", " + addresses.get(0).getCountryName();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return mRegion;
-	}
-
-	public String getCurrentRegion() {
 		String region = null;
-		Location location = mLocationClient.getLastLocation();
+		if (location != null) {
+			region = getRegionForLocation(location);
+		}
+		if (region != null && !region.equals(mRegion)) {
+			mRegion = region;
+			mObserver.onRegionUpdated(region, true);
+		} else {
+			mObserver.onRegionUpdated(mRegion, false);
+		}
+	}
+
+//	public String getLastKnownRegion() {
+//		return mRegion;
+//	}
+
+	private String getRegionForLocation(@NotNull Location location) {
+		String region = null;
 		try {
 			List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
 			if (addresses.size() > 0) {
-				region = addresses.get(0).getLocality() + ", " + addresses.get(0).getCountryName();
+				Address address = addresses.get(0);
+				if (address.getLocality() != null) {
+					region = address.getLocality() + ", " + address.getCountryName();
+				} else if (address.getAdminArea() != null) {
+					region = address.getAdminArea() + ", " + address.getCountryName();
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return region;
+	}
+
+	public void requestRegion() {
+		String region = null;
+		if (isConnected() && NetworkHelper.isConnected(mActivity)) {
+			Location location = mLocationClient.getLastLocation();
+			region = getRegionForLocation(location);
+		}
+		if (region != null && !region.equals(mRegion)) {
+			mRegion = region;
+			mObserver.onRegionUpdated(region, true);
+		} else {
+			mObserver.onRegionUpdated(mRegion, false);
+		}
+	}
+
+	public String getCurrentRegion() {
+		return mRegion;
 	}
 }

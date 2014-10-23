@@ -21,13 +21,17 @@ public class ScoreKeeper {
 		datastore.put(userEntity);
 	}
 
-	public static String updateSightScoreAfterHuntAndReturnCreator(long uuid, int vote, DatastoreService datastore, MemcacheService cache) {
+	public static Object[] updateSightScoreAfterHuntAndReturnCreator(long uuid, int vote, DatastoreService datastore, MemcacheService cache) {
 
 		Query.Filter keyFilter = new Query.FilterPredicate(Metadata.Sight.UUID, Query.FilterOperator.EQUAL, uuid);
 
 		Query q = new Query(Metadata.Sight.ENTITY_NAME).setFilter(keyFilter);
 		PreparedQuery pq = datastore.prepare(q);
 		Entity sightEntity = pq.asSingleEntity();
+
+		// entity already deleted
+		if (sightEntity == null) return null;
+
 		Key key = sightEntity.getKey();
 		String creator = (String) sightEntity.getProperty(Metadata.Sight.CREATOR);
 		long votes = (Long) sightEntity.getProperty(Metadata.Sight.VOTES);
@@ -54,7 +58,7 @@ public class ScoreKeeper {
 			cache.put(key1.getId(), sight1);
 		}
 
-		return creator;
+		return new Object[]{creator, key1.getId()};
 	}
 
 	public static void userEarnFromCreatedSight(String user, int vote, DatastoreService datastore, MemcacheService cache) {

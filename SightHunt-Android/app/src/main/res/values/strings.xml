@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">SightHunt</string>
+    <string name="app_name">Sight Hunt</string>
     <string name="title_new">New</string>
     <string name="title_most_voted">Hot</string>
     <string name="title_most_hunted">Popular</string>
@@ -15,20 +15,21 @@
 
     <string name="action_settings">Settings</string>
     <string name="action_logout">Log out</string>
+    <string name="action_flag">Flag</string>
 
     <string name="facebook_app_id">1482642765344136</string>
     <string name="api_key">AIzaSyDzFzDseOEBZWViri32II5FfX_Ce4QRqa4</string>
 
     <string name="title_explore">Explore</string>
-    <string name="title_results">My results</string>
+    <string name="title_results">Score</string>
     <string name="dialog_location_title">Location service disabled</string>
     <string name="dialog_location_message">Sight Hunt needs access to your location. Please turn on location access.</string>
     <string name="dialog_ignore">Ignore</string>
     <string name="dialog_settings">Settings</string>
 
-    <string name="unknown_location">Unknown location</string>
+    <string name="unknown_region">Unknown region</string>
     <string name="log_out">Log out</string>
-    <string name="facebook_button">Connect With Facebook</string>
+    <string name="facebook_button">Login With Facebook</string>
     <string name="sign_up">Sign up</string>
     <string name="log_in">Signed up already? Login now!</string>
     <string name="log_in_button">Log in</string>
@@ -42,5 +43,63 @@
     <string name="username_taken">Username already taken</string>
 
     <string name="forgot_password">Forgot your password?</string>
+
+
+    <string name="empty_input">Don\'t leave required fields empty!</string>
+    <string name="invalid_email">Invalid email address!</string>
+
+    <string name="location_unavailable">Location unavailable...</string>
+    <string name="network_unavailable">Network unavailable...</string>
+
+
+    <string name="user_info_unavailable">User info unavailable...</string>
+    <string name="not_enough_points">You don\'t have enough points to create new sights, earn more!</string>
+    <string name="release_in_unknown_region">You can\'t create sight in unknown region.</string>
+
+    <string name="hint_description">Give hunters some hint...</string>
+    <string name="hint_title">Title</string>
+
+
+    <string name="hint_description_hunt">There is no hint for this sight...</string>
+    <string name="hint_title_hunt">Untitled</string>
+
+    <string name="app_name_lower">sight hunt</string>
+
+    <string name="button_delete">Delete</string>
+    <string name="button_hunt">Hunt</string>
+    <string name="button_share">Share</string>
+    <string name="button_edit">Edit</string>
+    <string name="button_finish">Finish</string>
+    <string name="button_flag">Report</string>
+    <string name="button_report_ok">Confirm</string>
+
+    <string name="button_upvote">Up vote</string>
+    <string name="button_downvote">Down vote</string>
+    <string name="button_try_again">Try again</string>
+
+    <string name="text_success">Congratulations! You got it!\nYou will earn one point from this hunt. </string>
+    <string name="text_vote">One last step!\nIf you like the sight, up vote to reward the creator with one point.</string>
+    <string name="text_fail_right_place">You are in the right place, but the view doesn\'t match.</string>
+    <string name="text_fail_wrong_place">You are far from the right place...</string>
+    <string name="text_try_again_right_place">Don\'t give up! Try a different angle.</string>
+    <string name="text_try_again_wrong_place">Don\'t give up! Maybe share the sight to get some help.</string>
+
+
+    <string name="title_report">This shouldn\'t be here because: </string>
+
+    <string-array name="report_reasons">
+        <item>Inappropriate content that is sexual, violent, promotes racism, etc.</item>
+        <item>The sight is impossible to hunt, for example not in publicly visible location.</item>
+        <item>The sight violates my privacy (please contact us via email).</item>
+    </string-array>
+
+    <string name="intro_your_city_title">Your city</string>
+    <string name="intro_your_city_body">Rediscover the city you live in</string>
+    <string name="intro_travel_title">Travel</string>
+    <string name="intro_travel_body">Explore new places when you are on a trip</string>
+    <string name="intro_myth_title">Mystery</string>
+    <string name="intro_myth_body">Follow the hints </string>
+    <string name="intro_compete_title">Compete</string>
+    <string name="intro_compete_body">Keep scores for the thrill</string>
 
 </resources>

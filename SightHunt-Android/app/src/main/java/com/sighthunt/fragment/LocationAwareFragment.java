@@ -2,7 +2,6 @@ package com.sighthunt.fragment;
 
 import android.app.Activity;
 import android.location.Location;
-import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
 import com.sighthunt.activity.LocationAwareActivity;
@@ -19,16 +18,17 @@ public abstract class LocationAwareFragment extends Fragment {
 		mHelper = ((LocationAwareActivity) getActivity()).getLocationHelper();
 	}
 
-	public void onLocationUpdated() {
+	public abstract void onRegionUpdated(String region, boolean changed);
+
+	public void requestRegion() {
+		mHelper.requestRegion();
 	}
 
 	public String getRegion() {
-		if (!mHelper.isConnected()) return null;
 		return mHelper.getCurrentRegion();
 	}
 
 	public Location getCurrentLocation() {
-		if (!mHelper.isConnected()) return null;
 		return mHelper.getLocation();
 	}
 }

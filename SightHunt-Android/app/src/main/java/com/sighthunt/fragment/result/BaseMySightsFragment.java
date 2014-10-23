@@ -1,3 +1,4 @@
+/*
 package com.sighthunt.fragment.result;
 
 import android.content.Intent;
@@ -106,3 +107,4 @@ public abstract class BaseMySightsFragment extends Fragment {
 	}
 
 }
+*/

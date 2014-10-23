@@ -18,7 +18,7 @@ public abstract class LocationAwareActivity extends FragmentActivity implements 
 	public abstract void onLocationConnected();
 
 	@Override
-	public abstract void onLocationUpdated();
+	public abstract void onRegionUpdated(String region, boolean changed);
 
 	@Override
 	public abstract void onLocationDisconnected();

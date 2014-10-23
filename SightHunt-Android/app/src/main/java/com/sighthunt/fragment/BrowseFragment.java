@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.sighthunt.R;
+import com.sighthunt.activity.MainActivity;
 import com.sighthunt.fragment.browse.MostHuntedSightsFragment;
 import com.sighthunt.fragment.browse.MostVotedSightsFragment;
 import com.sighthunt.fragment.browse.NewSightsFragment;
@@ -50,14 +51,11 @@ public class BrowseFragment extends LocationAwareFragment {
 	}
 
 	@Override
-	public void onLocationUpdated() {
-		super.onLocationUpdated();
-		if (getRegion() != null && !getRegion().equals(mRegion)) {
-			if (mNewSightsFragment != null) mNewSightsFragment.onLocationUpdated();
-			if (mMostVotedSightsFragment != null) mMostVotedSightsFragment.onLocationUpdated();
-			if (mMostHuntedSightsFragment != null) mMostHuntedSightsFragment.onLocationUpdated();
-			mRegion = getRegion();
-		}
+	public void onRegionUpdated(String region, boolean changed) {
+		if (mNewSightsFragment != null) mNewSightsFragment.onRegionUpdated(region, changed);
+		if (mMostVotedSightsFragment != null) mMostVotedSightsFragment.onRegionUpdated(region, changed);
+		if (mMostHuntedSightsFragment != null) mMostHuntedSightsFragment.onRegionUpdated(region, changed);
+
 	}
 
 	@Override
@@ -78,7 +76,10 @@ public class BrowseFragment extends LocationAwareFragment {
 
 		SlidingTabLayout tabs = (SlidingTabLayout) view.findViewById(R.id.tabs);
 		tabs.setViewPager(mViewPager);
-
+		tabs.setBackgroundResource(R.color.grey_dark);
+		tabs.setSelectedIndicatorColors(getResources().getColor(R.color.grey_medium));
+		tabs.setDividerColors(getResources().getColor(R.color.grey_medium));
+		((MainActivity) getActivity()).updateUIForBrowse();
 		return view;
 	}
 

@@ -12,45 +12,42 @@
         android:layout_alignParentBottom="true">
 
         <FrameLayout
-            android:id="@+id/button_browse"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1">
 
-            <ImageView
+            <ImageButton
+                android:id="@+id/button_browse"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:scaleType="centerCrop"
-                android:src="@drawable/button_browse"/>
+                android:background="@drawable/button_browse"/>
         </FrameLayout>
 
         <FrameLayout
-            android:id="@+id/button_cam"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1">
 
-            <ImageView
+            <ImageButton
+                android:id="@+id/button_cam"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:scaleType="matrix"
-                android:src="@drawable/button_cam"/>
+                android:background="@drawable/button_cam"/>
         </FrameLayout>
 
         <FrameLayout
-            android:id="@+id/button_list"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1">
 
-            <ImageView
+            <ImageButton
+                android:id="@+id/button_list"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:scaleType="centerCrop"
-                android:src="@drawable/button_list"/>
+                android:background="@drawable/button_list"/>
         </FrameLayout>
 
     </LinearLayout>

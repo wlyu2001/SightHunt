@@ -1,5 +1,8 @@
 package com.sighthunt.servlet.sight;
 
+import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.blobstore.BlobstoreService;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.*;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
@@ -32,6 +35,8 @@ public class DeleteSightServlet extends HttpServlet {
 		PreparedQuery preparedQuery = datastore.prepare(query);
 		Entity entity = preparedQuery.asSingleEntity();
 		Key key = entity.getKey();
+		String imageKey = (String)entity.getProperty(Metadata.Sight.IMAGE_KEY);
+		String thumbKey = (String)entity.getProperty(Metadata.Sight.THUMB_KEY);
 
 		datastore.delete(key);
 
@@ -44,6 +49,11 @@ public class DeleteSightServlet extends HttpServlet {
 		Entity entity1 = new Entity(Metadata.DeletedSight.ENTITY_NAME, uuid);
 		entity1.setProperty(Metadata.DeletedSight.DELETION_TIME, new Date().getTime());
 		datastore.put(entity1);
+
+		BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+		BlobKey imageBlobKey = new BlobKey(imageKey);
+		BlobKey thumbBlobKey = new BlobKey(thumbKey);
+		blobstoreService.delete(imageBlobKey, thumbBlobKey);
 
 		JsonResponseWriter.write(resp, 1);
 	}

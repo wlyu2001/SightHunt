@@ -1,3 +1,4 @@
+/*
 package com.sighthunt.fragment;
 
 import android.os.Bundle;
@@ -120,3 +121,4 @@ public class ResultsFragment1 extends Fragment {
 	}
 
 }
+*/

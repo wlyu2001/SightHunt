@@ -2,11 +2,13 @@ package com.sighthunt.fragment.login;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.sighthunt.R;
 import com.sighthunt.activity.LoginActivity;
@@ -43,7 +45,11 @@ public class LoginFragment extends Fragment {
 			public void onClick(View v) {
 				String username = mEditTextUserName.getText().toString();
 				String password = mEditTextPassword.getText().toString();
-				mLoginActivity.login(username, PasswordHash.hash(password));
+				if(TextUtils.isEmpty(username) || TextUtils.isEmpty(password)) {
+					Toast.makeText(getActivity(), getString(R.string.empty_input), Toast.LENGTH_LONG).show();
+				} else {
+					mLoginActivity.login(username, PasswordHash.hash(password));
+				}
 			}
 		});
 		return view;

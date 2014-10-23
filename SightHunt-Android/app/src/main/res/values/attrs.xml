@@ -1,0 +1,8 @@
+<resources>
+    <declare-styleable name="ViewPagerIndicator">
+        <attr name="indicatorSize" format="dimension"/>
+        <attr name="indicatorSpacing" format="dimension"/>
+        <attr name="indicatorInactiveColor" format="color"/>
+        <attr name="indicatorActiveColor" format="color"/>
+    </declare-styleable>
+</resources>

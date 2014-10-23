@@ -47,15 +47,22 @@ public class ApiManager implements Injectable {
 		@POST("/sight/delete")
 		void deleteSight(@Query("uuid") long uuid, Callback<Integer> callback);
 
+		@POST("/sight/report")
+		void reportSight(@Query("uuid") long uuid, @Query("reporter") String reporter, @Query("reason") int reason, Callback<Integer> callback);
+
 		// type can be hunted, created
 		@GET("/sight/list_by_user")
 		void getSightsByUser(@Query("user") String id, @Query("type") String type, @Query("offset") int start, @Query("limit") int limit, Callback<List<Long>> callback);
 
 		@GET("/sight/hunt")
-		void huntSight(@Query("user") String username, @Query("uuid") long uuid, @Query("key") long key, @Query("vote") int vote, Callback<Integer> callback);
+		void huntSight(@Query("user") String username, @Query("uuid") long uuid, @Query("key") long key, @Query("vote") int vote, Callback<List<Long>> callback);
 
 		@GET("/sight/fetch_hunts")
 		void fetchHunts(@Query("user") String username, @Query("last_update") long lastUpdate, Callback<List<Long>> callback);
+
+		@GET("/sight/check_delete")
+		void checkDelete(@Query("uuid") long uuid, Callback<Integer> callback);
+
 
 	}
 

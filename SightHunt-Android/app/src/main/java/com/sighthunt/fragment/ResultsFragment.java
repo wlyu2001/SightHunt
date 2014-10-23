@@ -10,15 +10,18 @@ import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.sighthunt.R;
 import com.sighthunt.activity.HuntActivity;
+import com.sighthunt.activity.MainActivity;
 import com.sighthunt.adapter.SightListViewAdapter;
 import com.sighthunt.data.Contract;
 import com.sighthunt.data.model.Sight;
 import com.sighthunt.inject.Injector;
+import com.sighthunt.network.SightHuntService;
 import com.sighthunt.network.model.SightFetchType;
 import com.sighthunt.util.AccountUtils;
 
@@ -33,35 +36,59 @@ public class ResultsFragment extends Fragment {
 
 	SightListViewAdapter mAdapter;
 	AccountUtils mAccountUtils = Injector.get(AccountUtils.class);
+	private static final int NEXT_LOADING_SIGHTS_COUNT = 3;
+	private boolean mHasMoreSights = true;
+	private int mCurrentOffset;
+	private boolean mUserScrolled;
 
 	private PullToRefreshLayout mPullToRefreshLayout;
 
-	LoaderManager.LoaderCallbacks<Cursor> mLoaderCallback = new LoaderManager.LoaderCallbacks<Cursor>() {
-		@Override
-		public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+	private LoaderManager.LoaderCallbacks<Cursor> getLoaderCallbacks(final String user, final String type, final int count) {
 
-			return new CursorLoader(getActivity(),
-					Contract.Sight.getFetchSightsByUserLocalUri(mAccountUtils.getUsername(), SightFetchType.CREATED_BY),
-					Sight.PROJECTION, null, null, null);
-		}
+		return new LoaderManager.LoaderCallbacks<Cursor>() {
+			@Override
+			public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
 
-		@Override
-		public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-			mPullToRefreshLayout.setRefreshComplete();
-			mAdapter.swapCursor(cursor);
-		}
+				return new CursorLoader(getActivity(),
+						Contract.Sight.getFetchSightsByUserLocalUri(user, type, count),
+						Sight.PROJECTION, null, null, null);
+			}
 
-		@Override
-		public void onLoaderReset(Loader<Cursor> cursorLoader) {
+			@Override
+			public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+				mPullToRefreshLayout.setRefreshComplete();
+				mAdapter.swapCursor(cursor);
+				if (cursor.getCount() < mCurrentOffset + LIMIT) {
+					mHasMoreSights = false;
+				} else {
+					mHasMoreSights = true;
+				}
+			}
 
-		}
-	};
+			@Override
+			public void onLoaderReset(Loader<Cursor> cursorLoader) {
+
+			}
+		};
+	}
 
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		getLoaderManager().restartLoader(R.id.loader_my_created_sights, null, mLoaderCallback);
+
+		reloadSights();
+	}
+
+	private void reloadSights() {
+		getLoaderManager().restartLoader(R.id.loader_my_created_sights, null, getLoaderCallbacks(mAccountUtils.getUsername(), SightFetchType.CREATED_BY, LIMIT));
+
+		mCurrentOffset = 0;
+		mHasMoreSights = true;
+		getActivity().startService(SightHuntService.getFetchSightsByUserIntent(getActivity(),
+				mAccountUtils.getUsername(),
+				SightFetchType.CREATED_BY,
+				0, LIMIT));
 	}
 
 
@@ -77,7 +104,7 @@ public class ResultsFragment extends Fragment {
 				.listener(new OnRefreshListener() {
 					@Override
 					public void onRefreshStarted(View view) {
-						getActivity().getContentResolver().query(Contract.Sight.getFetchSightsByUserRemoteUri(mAccountUtils.getUsername(), SightFetchType.CREATED_BY, 0, LIMIT), null, null, null, null);
+						reloadSights();
 					}
 				})
 				.setup(mPullToRefreshLayout);
@@ -90,15 +117,47 @@ public class ResultsFragment extends Fragment {
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				Cursor cursor = (Cursor) mAdapter.getItem(position);
 				Sight sight = Sight.fromCursor(cursor);
-				startActivity(HuntActivity.getIntent(getActivity(), sight.key, sight.uuid).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+				startActivity(HuntActivity.getIntent(getActivity(), sight).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+			}
+		});
+
+		listView.setOnScrollListener(new AbsListView.OnScrollListener() {
+			@Override
+			public void onScrollStateChanged(AbsListView view, int scrollState) {
+				if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
+					mUserScrolled = true;
+				}
+			}
+
+			@Override
+			public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+				if (!mUserScrolled) return;
+
+				if (!mHasMoreSights) return;
+
+				boolean endOfListReached = (firstVisibleItem + visibleItemCount) >= (totalItemCount - NEXT_LOADING_SIGHTS_COUNT + 1);
+				if (endOfListReached) {
+					if (totalItemCount > 0) {
+						final int offset = totalItemCount;
+						// have we run this query already?
+						if (offset > mCurrentOffset) {
+							getLoaderManager().restartLoader(R.id.loader_my_created_sights, null, getLoaderCallbacks(mAccountUtils.getUsername(), SightFetchType.CREATED_BY, mCurrentOffset + 2 * LIMIT));
+							getActivity().startService(SightHuntService.getFetchSightsByUserIntent(getActivity(), mAccountUtils.getUsername(), SightFetchType.CREATED_BY, offset, LIMIT));
+							mCurrentOffset = offset;
+
+						}
+					}
+				}
 			}
 		});
 
 		mAdapter = new SightListViewAdapter(getActivity());
 		listView.setAdapter(mAdapter);
+		((MainActivity) getActivity()).updateUIForResult();
 
 		return view;
 	}
+
 	public static ResultsFragment createInstance() {
 		ResultsFragment fragment = new ResultsFragment();
 		return fragment;

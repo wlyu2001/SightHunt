@@ -16,7 +16,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class HuntServlet extends HttpServlet {
 
@@ -38,20 +40,31 @@ public class HuntServlet extends HttpServlet {
 		hunt.vote = vote;
 
 		Entity huntEntity = DBHelper.createHuntEntity(hunt);
-
-		huntEntity.setProperty(Metadata.Hunt.TIME, new Date());
+		Date now = new Date();
+		huntEntity.setProperty(Metadata.Hunt.TIME, now);
 		datastore.put(huntEntity);
 
 
 		MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
-
-		String creator = ScoreKeeper.updateSightScoreAfterHuntAndReturnCreator(uuid, vote, datastore, cache);
-
-		ScoreKeeper.userEarnFromCreatedSight(creator, vote, datastore, cache);
-
+		// no matter what let's get the point for hunter
 		ScoreKeeper.userEarnFromHuntSight(user, datastore, cache);
 
-		JsonResponseWriter.write(resp, 1);
+		Object[] objs = ScoreKeeper.updateSightScoreAfterHuntAndReturnCreator(uuid, vote, datastore, cache);
+		// if objs is null. this means the sight is already delete by creator. we return key 0 to notify client
+		// to remove it from cache. and skip giving point to creator..
+		List<Long> results = new ArrayList<Long>();
+		if (objs != null) {
+			String creator = (String) objs[0];
+			long key = (Long) objs[1];
+			ScoreKeeper.userEarnFromCreatedSight(creator, vote, datastore, cache);
+
+			results.add(key);
+		} else {
+			results.add(0l);
+		}
+
+		results.add(now.getTime());
+		JsonResponseWriter.write(resp, results);
 
 	}
 }

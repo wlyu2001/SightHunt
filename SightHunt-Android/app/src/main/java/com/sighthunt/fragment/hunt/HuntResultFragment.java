@@ -1,81 +1,68 @@
 package com.sighthunt.fragment.hunt;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.ContentValues;
-import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.database.ContentObserver;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sighthunt.R;
 import com.sighthunt.algorithm.ImageMatcher;
 import com.sighthunt.data.Contract;
+import com.sighthunt.data.model.Sight;
 import com.sighthunt.inject.Injector;
-import com.sighthunt.network.ApiManager;
+import com.sighthunt.network.SightHuntService;
 import com.sighthunt.util.AccountUtils;
-import com.sighthunt.util.ImageFiles;
-import com.sighthunt.util.PreferenceUtil;
-import com.sighthunt.view.MatchOverlayView;
-import com.squareup.picasso.Picasso;
+
+import org.opencv.features2d.DescriptorExtractor;
+import org.opencv.features2d.DescriptorMatcher;
+import org.opencv.features2d.FeatureDetector;
 
 public class HuntResultFragment extends Fragment {
 
-	AccountUtils mAccountUtils = Injector.get(AccountUtils.class);
-	ApiManager mApiManager = Injector.get(ApiManager.class);
+	private AccountUtils mAccountUtils = Injector.get(AccountUtils.class);
 
-	ImageMatcher mImageMatcher;
-	ImageView mImageView1;
-	ImageView mImageView2;
-	MatchOverlayView mMatchOverlayView;
-	EditText mThreshold;
+	private ImageMatcher mImageMatcher;
+	private View mFailedLayout;
+	private View mSuccessLayout;
 
-	SharedPreferences mPrefs;
-
-	private static final String PREF_SELECTED_DETECTOR = "pref_selected_detector";
-	private static final String PREF_SELECTED_DESCRIPTOR = "pref_selected_descriptor";
-	private static final String PREF_PREPRO = "pref_prepro";
-	private static final String PREF_SELECTED_MATCHER = "pref_selected_matcher";
-	private static final String PREF_MATCH_THRESHOLD = "pref_match_threshold";
-
-
-	private static final String[] MATCHERS = new String[]{"FLANNBASED", "BRUTEFORCE", "BRUTEFORCE_L1", "BRUTEFORCE_HAMMING", "BRUTEFORCE_HAMMINGLUT", "BRUTEFORCE_SL2"};
-	private static final String[] DETECTOR = new String[]{"FAST", "START", "SIFT", "SURF", "ORB", "MSER", "GFTT", "HARRIS", "SIMPLEBLOB", "DENSE", "BRISK"};
-	private static final String[] DESCRIPTOR = new String[]{"SIFT", "SURF", "ORB", "BRIEF", "BRISK", "FREAK"};
-	private static final String[] PREPRO = new String[]{"ORIGINAL", "BINARY", "EDGE"};
-	private static final int[] MATCHERS_MAP = new int[]{1, 2, 3, 4, 5, 6};
-	private static final int[] DETECTOR_MAP = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-	private static final int[] DESCRIPTOR_MAP = new int[]{1, 2, 3, 4, 5, 6};
+	private static final float DISTANCE_THRESHOLD = 100;
+	private static final int IMAGE_MATCH_THRESHOLD = 3;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		//mImageMatcher = new ImageMatcher();
-		mPrefs = PreferenceUtil.getSettingSharedPreferences(getActivity());
+
 	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		final View view = inflater.inflate(R.layout.fragment_hunt_result, container, false);
 
-		final View failedLayout = view.findViewById(R.id.layoutFailed);
-		final View successLayout = view.findViewById(R.id.layoutSuccess);
+		float lon = getArguments().getFloat(Contract.Sight.LON);
+		float lat = getArguments().getFloat(Contract.Sight.LAT);
+		Sight sight = getArguments().getParcelable(Sight.ARG);
+
+		mFailedLayout = view.findViewById(R.id.layoutFailed);
+		mSuccessLayout = view.findViewById(R.id.layoutSuccess);
 
 		final Button buttonUpVote = (Button) view.findViewById(R.id.buttonUpVote);
 		final Button buttonDownVote = (Button) view.findViewById(R.id.buttonDownVote);
 		final Button buttonTryAgain = (Button) view.findViewById(R.id.buttonTryAgain);
+
+		final TextView textViewFailed = (TextView) view.findViewById(R.id.textViewFailed);
+		final TextView textViewSuccess = (TextView) view.findViewById(R.id.textViewSuccess);
+		final TextView textViewVote = (TextView) view.findViewById(R.id.textViewVote);
+		final TextView textViewTryAgain = (TextView) view.findViewById(R.id.textViewTryAgain);
 
 		buttonTryAgain.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -99,173 +86,73 @@ public class HuntResultFragment extends Fragment {
 			}
 		});
 
-		final Button buttonPrepro = (Button) view.findViewById(R.id.button_prepro);
-		buttonPrepro.setText(PREPRO[mPrefs.getInt(PREF_PREPRO, 0)]);
-		buttonPrepro.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				int selected = mPrefs.getInt(PREF_PREPRO, 0);
-				showChoserDialog("Preprocess", PREPRO, selected, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						mPrefs.edit().putInt(PREF_PREPRO, which).commit();
-						buttonPrepro.setText(PREPRO[which]);
-					}
-				});
+		float distance = matchLocation(lon, lat, sight.lon, sight.lat);
+		int matches = matchImage();
+		if (distance > DISTANCE_THRESHOLD) {
+			mSuccessLayout.setVisibility(View.GONE);
+			mFailedLayout.setVisibility(View.VISIBLE);
+			textViewFailed.setText(R.string.text_fail_wrong_place);
+			textViewTryAgain.setText(R.string.text_try_again_wrong_place);
+		} else {
+			if (matches < IMAGE_MATCH_THRESHOLD) {
+
+				mSuccessLayout.setVisibility(View.GONE);
+				mFailedLayout.setVisibility(View.VISIBLE);
+				textViewFailed.setText(R.string.text_fail_right_place);
+				textViewTryAgain.setText(R.string.text_try_again_right_place);
+			} else {
+
+				mSuccessLayout.setVisibility(View.VISIBLE);
+				mFailedLayout.setVisibility(View.GONE);
+
 			}
-		});
-
-		final Button buttonDescriptor = (Button) view.findViewById(R.id.button_descriptor);
-		buttonDescriptor.setText(DESCRIPTOR[mPrefs.getInt(PREF_SELECTED_DESCRIPTOR, 0)]);
-		buttonDescriptor.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				int selected = mPrefs.getInt(PREF_SELECTED_DESCRIPTOR, 0);
-				showChoserDialog("Descriptor", DESCRIPTOR, selected, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						mPrefs.edit().putInt(PREF_SELECTED_DESCRIPTOR, which).commit();
-						buttonDescriptor.setText(DESCRIPTOR[which]);
-					}
-				});
-			}
-		});
-
-		final Button buttonDetector = (Button) view.findViewById(R.id.button_detector);
-		buttonDetector.setText(DETECTOR[mPrefs.getInt(PREF_SELECTED_DETECTOR, 0)]);
-		buttonDetector.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				int selected = mPrefs.getInt(PREF_SELECTED_DETECTOR, 0);
-				showChoserDialog("Detector", DETECTOR, selected, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						mPrefs.edit().putInt(PREF_SELECTED_DETECTOR, which).commit();
-						buttonDetector.setText(DETECTOR[which]);
-					}
-				});
-			}
-		});
-
-		final Button buttonMatcher = (Button) view.findViewById(R.id.button_matcher);
-		buttonMatcher.setText(MATCHERS[mPrefs.getInt(PREF_SELECTED_MATCHER, 0)]);
-		buttonMatcher.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				int selected = mPrefs.getInt(PREF_SELECTED_MATCHER, 0);
-				showChoserDialog("Matcher", MATCHERS, selected, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						mPrefs.edit().putInt(PREF_SELECTED_MATCHER, which).commit();
-						buttonMatcher.setText(MATCHERS[which]);
-					}
-				});
-			}
-		});
-
-		mThreshold = (EditText) view.findViewById(R.id.text_threshold);
-		mThreshold.setText(mPrefs.getFloat(PREF_MATCH_THRESHOLD, 0) + "");
-
-		Button buttonCompute = (Button) view.findViewById(R.id.button_compute);
-		buttonCompute.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				if (compute()) {
-					successLayout.setVisibility(View.VISIBLE);
-					failedLayout.setVisibility(View.GONE);
-				} else {
-					successLayout.setVisibility(View.GONE);
-					failedLayout.setVisibility(View.VISIBLE);
-				}
-
-				int prepro = mPrefs.getInt(PREF_PREPRO, 0);
-				if (prepro == 0) {
-					Picasso.with(getActivity()).load(ImageFiles.ORIGINAL_IMAGE).skipMemoryCache().into(mImageView1);
-					Picasso.with(getActivity()).load(ImageFiles.MATCH_IMAGE).skipMemoryCache().into(mImageView2);
-				} else {
-					Picasso.with(getActivity()).load(ImageFiles.ORIGINAL_IMAGE_PREPRO).skipMemoryCache().into(mImageView1);
-					Picasso.with(getActivity()).load(ImageFiles.MATCH_IMAGE_PREPRO).skipMemoryCache().into(mImageView2);
-				}
-			}
-		});
-
-		mImageView1 = (ImageView) view.findViewById(R.id.imageView1);
-		mImageView2 = (ImageView) view.findViewById(R.id.imageView2);
-
-		mMatchOverlayView = (MatchOverlayView) view.findViewById(R.id.matchOverlayView);
-
+		}
 		return view;
 	}
 
 	private void voteAndSendToServer(final int vote) {
-		final long uuid = getArguments().getLong(Contract.Sight.UUID);
-		final long key = getArguments().getLong(Contract.Sight.KEY);
+		final Sight sight = getArguments().getParcelable(Sight.ARG);
 		final String username = mAccountUtils.getUsername();
 
-		ContentValues values = new ContentValues();
-		values.put(Contract.Hunt.USER, username);
-		values.put(Contract.Hunt.SIGHT_UUID, uuid);
-		values.put(Contract.Hunt.SIGHT_KEY, key);
-		values.put(Contract.Hunt.VOTE, vote);
-		getActivity().getContentResolver().insert(Contract.Hunt.getInsertHuntRemoteUri(), values);
+		getActivity().startService(SightHuntService.getInsertHuntIntent(getActivity(), username, sight.uuid, sight.key, vote));
 
-		getActivity().getContentResolver().registerContentObserver(Contract.Hunt.getInsertHuntRemoteUri(), false, new ContentObserver(new Handler(Looper.getMainLooper())) {
+		getActivity().getContentResolver().registerContentObserver(Contract.Hunt.getInsertHuntLocalUri(), false, new ContentObserver(new Handler(Looper.getMainLooper())) {
 			@Override
 			public void onChange(boolean selfChange) {
 				super.onChange(selfChange);
+				super.onChange(selfChange);
 				Activity activity = getActivity();
 				if (activity != null) {
-					Toast.makeText(activity, "Successfully hunted", Toast.LENGTH_LONG).show();
+					Toast.makeText(activity, "Successfully hunted!", Toast.LENGTH_LONG).show();
 					activity.finish();
 				}
 			}
 		});
 	}
 
-	private void showChoserDialog(String title, String[] items, int selected, DialogInterface.OnClickListener listener) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-		builder.setTitle(title);
-		builder.setItems(items, listener);
-		AlertDialog alertDialog = builder.create();
-		alertDialog.getListView().setSelection(selected);
-		alertDialog.show();
+	private float matchLocation(float lon1, float lat1, float lon2, float lat2) {
+		Location locationA = new Location("A");
+		locationA.setLatitude(lat1);
+		locationA.setLongitude(lon1);
+		Location locationB = new Location("B");
+		locationB.setLatitude(lat2);
+		locationB.setLongitude(lon2);
+		float distance = locationA.distanceTo(locationB);
+
+		return distance;
 	}
 
-
-	private boolean compute() {
-		mPrefs.edit().putFloat(PREF_MATCH_THRESHOLD, Float.parseFloat(mThreshold.getText().toString())).commit();
-
-
-		int matcher = MATCHERS_MAP[mPrefs.getInt(PREF_SELECTED_MATCHER, 0)];
-		int detector = DETECTOR_MAP[mPrefs.getInt(PREF_SELECTED_DETECTOR, 0)];
-		int descriptor = DESCRIPTOR_MAP[mPrefs.getInt(PREF_SELECTED_DESCRIPTOR, 0)];
-		int prepro = mPrefs.getInt(PREF_PREPRO, 0);
-
-		mImageMatcher = new ImageMatcher(detector, descriptor, matcher, Float.parseFloat(mThreshold.getText().toString()), prepro);
-		//mImageMatcher = new ImageMatcher(FeatureDetector.ORB, DescriptorExtractor.ORB, DescriptorMatcher.BRUTEFORCE_HAMMING, 40);
-
-		mImageMatcher.getImageMatchingScore();
-
-		Log.i("lingyu matches", mImageMatcher.getMatches().size() + "");
-
-		mMatchOverlayView.setMatches(mImageMatcher.getKeyPoints1(), mImageMatcher.getKeyPoints2(), mImageMatcher.getMatches(), mImageMatcher.getWidth(), mImageMatcher.getHeight());
-		mMatchOverlayView.invalidate();
-
-
-		// if match succeeds
-
-		return true;
-
-
+	private int matchImage() {
+		mImageMatcher = new ImageMatcher(FeatureDetector.ORB, DescriptorExtractor.ORB, DescriptorMatcher.BRUTEFORCE_HAMMING, 40, 0);
+		return mImageMatcher.getImageMatchingScore();
 	}
 
-	public static HuntResultFragment createInstance(long key, long uuid, float lon, float lat) {
+	public static HuntResultFragment createInstance(Sight sight, float lon, float lat) {
 		HuntResultFragment fragment = new HuntResultFragment();
 
 		Bundle arguments = new Bundle();
 
-		arguments.putLong(Contract.Sight.KEY, key);
-		arguments.putLong(Contract.Sight.UUID, uuid);
+		arguments.putParcelable(Sight.ARG, sight);
 		arguments.putFloat(Contract.Sight.LON, lon);
 		arguments.putFloat(Contract.Sight.LAT, lat);
 		fragment.setArguments(arguments);

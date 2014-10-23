@@ -148,6 +148,7 @@ public class AccountUtils implements Injectable {
 				mUser = user;
 				notifyUserUpdatedCallbacks();
 			}
+			//add broadcast receiver
 
 			@Override
 			public void failure(RetrofitError error) {
@@ -158,12 +159,12 @@ public class AccountUtils implements Injectable {
 
 	private void notifyUserUpdatedCallbacks() {
 		for(UserUpdatedCallback callback:mUserUpdatedCallbacks) {
-			callback.updated();
+			callback.userUpdated();
 		}
 	}
 
 	public interface UserUpdatedCallback {
-		public void updated();
+		public void userUpdated();
 	}
 	private List<UserUpdatedCallback> mUserUpdatedCallbacks = new ArrayList<UserUpdatedCallback>();
 	public void addUserUpdatedCallback(UserUpdatedCallback callback) {

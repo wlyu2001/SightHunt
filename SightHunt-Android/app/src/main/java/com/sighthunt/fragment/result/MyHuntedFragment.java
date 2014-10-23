@@ -1,3 +1,4 @@
+/*
 package com.sighthunt.fragment.result;
 
 import com.sighthunt.R;
@@ -14,3 +15,4 @@ public class MyHuntedFragment extends BaseMySightsFragment {
 		return R.id.loader_my_hunted_sights;
 	}
 }
+*/

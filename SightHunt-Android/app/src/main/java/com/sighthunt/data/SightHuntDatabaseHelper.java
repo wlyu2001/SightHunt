@@ -16,7 +16,7 @@ public class SightHuntDatabaseHelper extends SQLiteOpenHelper implements Injecta
 	private static final String COMMA_SEP = ",";
 
 	private static final String DATABASE_NAME = "sight.db";
-	public static final int DATABASE_VERSION = 18;
+	public static final int DATABASE_VERSION = 20;
 	private static final String SQL_CREATE_SIGHTS =
 			"CREATE TABLE " + Contract.Sight.TABLE_NAME + " (" +
 					Contract.Sight.KEY + INTEGER_TYPE + COMMA_SEP +
@@ -43,12 +43,24 @@ public class SightHuntDatabaseHelper extends SQLiteOpenHelper implements Injecta
 					"PRIMARY KEY (" + Contract.Hunt.USER + COMMA_SEP +
 					Contract.Hunt.SIGHT_UUID + "))";
 
+	private static final String SQL_CREATE_REPORTS =
+			"CREATE TABLE " + Contract.Report.TABLE_NAME + " (" +
+					Contract.Report.REASON + INTEGER_TYPE + COMMA_SEP +
+					Contract.Report.SIGHT_UUID + INTEGER_TYPE + COMMA_SEP +
+					Contract.Report.REPORTER + TEXT_TYPE + COMMA_SEP +
+					"PRIMARY KEY (" + Contract.Report.REPORTER + COMMA_SEP +
+					Contract.Report.SIGHT_UUID + "))";
+
 	private static final String SQL_DELETE_SIGHTS =
 			"DROP TABLE IF EXISTS " + Contract.Sight.TABLE_NAME;
 
 
 	private static final String SQL_DELETE_HUNTS =
 			"DROP TABLE IF EXISTS " + Contract.Hunt.TABLE_NAME;
+
+
+	private static final String SQL_DELETE_REPORTS =
+			"DROP TABLE IF EXISTS " + Contract.Report.TABLE_NAME;
 
 	private Context mContext;
 
@@ -61,6 +73,7 @@ public class SightHuntDatabaseHelper extends SQLiteOpenHelper implements Injecta
 	public void onCreate(SQLiteDatabase db) {
 		db.execSQL(SQL_CREATE_SIGHTS);
 		db.execSQL(SQL_CREATE_HUNTS);
+		db.execSQL(SQL_CREATE_REPORTS);
 		clearSharedPreference();
 	}
 
@@ -68,6 +81,7 @@ public class SightHuntDatabaseHelper extends SQLiteOpenHelper implements Injecta
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		db.execSQL(SQL_DELETE_SIGHTS);
 		db.execSQL(SQL_DELETE_HUNTS);
+		db.execSQL(SQL_DELETE_REPORTS);
 		onCreate(db);
 	}
 

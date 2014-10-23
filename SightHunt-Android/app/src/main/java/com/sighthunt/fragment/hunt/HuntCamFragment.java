@@ -10,7 +10,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 
 import com.sighthunt.R;
-import com.sighthunt.data.Contract;
+import com.sighthunt.data.model.Sight;
 import com.sighthunt.fragment.LocationAwareFragment;
 import com.sighthunt.util.ImageFiles;
 import com.sighthunt.view.CapturePreview;
@@ -23,17 +23,17 @@ public class HuntCamFragment extends LocationAwareFragment {
 		final View view = inflater.inflate(R.layout.fragment_hunt_cam, container, false);
 
 		Bundle args = getArguments();
-		final long key = args.getLong(Contract.Sight.KEY);
-		final long uuid = args.getLong(Contract.Sight.UUID);
+		final Sight sight = args.getParcelable(Sight.ARG);
 
 		ImageView imageView = (ImageView) view.findViewById(R.id.image_view);
+		final CapturePreview capturePreview = (CapturePreview) view.findViewById(R.id.capturePreview);
 		imageView.setAlpha(0.5f);
 		Picasso.with(getActivity()).load(ImageFiles.ORIGINAL_IMAGE).skipMemoryCache().into(imageView);
 		Button button = (Button) view.findViewById(R.id.button_take);
 		button.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				CapturePreview.takeAPicture(ImageFiles.MATCH_IMAGE, ImageFiles.MATCH_IMAGE_THUMB, new CapturePreview.CapturePreviewObserver() {
+				capturePreview.takeAPicture(ImageFiles.MATCH_IMAGE, ImageFiles.MATCH_IMAGE_THUMB, new CapturePreview.CapturePreviewObserver() {
 					@Override
 					public void pictureCaptured(boolean success) {
 						if (success) {
@@ -46,7 +46,7 @@ public class HuntCamFragment extends LocationAwareFragment {
 								lat = (float) location.getLatitude();
 								lon = (float) location.getLongitude();
 							}
-							Fragment fragment = HuntResultFragment.createInstance(key,uuid, lon, lat);
+							Fragment fragment = HuntResultFragment.createInstance(sight, lon, lat);
 							getFragmentManager().beginTransaction().replace(R.id.container, fragment, null).addToBackStack("HuntCamFragment").commit();
 						}
 					}
@@ -58,12 +58,16 @@ public class HuntCamFragment extends LocationAwareFragment {
 		return view;
 	}
 
-	public static HuntCamFragment createInstance(long key, long uuid) {
+	public static HuntCamFragment createInstance(Sight sight) {
 		HuntCamFragment fragment = new HuntCamFragment();
 		Bundle args = new Bundle();
-		args.putLong(Contract.Sight.KEY, key);
-		args.putLong(Contract.Sight.UUID, uuid);
+		args.putParcelable(Sight.ARG, sight);
 		fragment.setArguments(args);
 		return fragment;
+	}
+
+	@Override
+	public void onRegionUpdated(String region, boolean changed) {
+
 	}
 }

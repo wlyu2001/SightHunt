@@ -1,6 +1,7 @@
 package com.sighthunt.activity;
 
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
@@ -15,30 +16,37 @@ public class ReleaseActivity extends LocationAwareActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_release);
 
+
+		getActionBar().setIcon(R.drawable.close);
+		getActionBar().setHomeButtonEnabled(true);
+		getActionBar().setTitle(null);
+
 		mReleaseCamFragment = new ReleaseCamFragment();
 		getSupportFragmentManager().beginTransaction()
 				.replace(R.id.container, mReleaseCamFragment)
 				.commit();
+	}
 
-		Button closeButton = (Button) findViewById(R.id.button_close);
-		closeButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId())
+		{
+			case android.R.id.home:
 				finish();
-			}
-		});
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
 	}
 
 	@Override
 	public void onLocationConnected() {
-		if (mReleaseCamFragment != null)
-			mReleaseCamFragment.onLocationUpdated();
 	}
 
 	@Override
-	public void onLocationUpdated() {
+	public void onRegionUpdated(String region, boolean changed) {
 		if (mReleaseCamFragment != null)
-			mReleaseCamFragment.onLocationUpdated();
+			mReleaseCamFragment.onRegionUpdated(region, changed);
 
 	}
 

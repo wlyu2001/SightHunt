@@ -44,48 +44,32 @@ public final class Contract {
 
 		public static final String UUID = "_id";
 
-		public static final Uri getFetchSightsByRegionRemoteUri(String region, String type, int offset, int limit) {
-			return Uri.parse(CONTENT_URI + "/sight_by_region/" + region + "/type/" + type + "/remote/offset/" + offset + "/limit/" + limit);
+		public static final Uri getFetchSightsByRegionLocalUri(String region, String type, int count) {
+			return Uri.parse(CONTENT_URI + "/sight_by_region/" + region + "/type/" + type + "/count/" + count);
 		}
 
-		public static final Uri getFetchSightsByRegionLocalUri(String region, String type) {
-			return Uri.parse(CONTENT_URI + "/sight_by_region/" + region + "/type/" + type + "/local");
+		public static final Uri getBasicTypeUri(String type) {
+			return Uri.parse(CONTENT_URI + "/sight_by_type/" + type);
 		}
 
-		public static final Uri getFetchSightsByUserRemoteUri(String user, String type, int offset, int limit) {
-			return Uri.parse(CONTENT_URI + "/sight_by_user/" + user + "/type/" + type + "/remote/offset/" + offset + "/limit/" + limit);
-		}
-
-		public static final Uri getFetchSightsByUserLocalUri(String user, String type) {
-			return Uri.parse(CONTENT_URI + "/sight_by_user/" + user + "/type/" + type + "/local");
-		}
-
-		public static final Uri getCreateSightRemoteUri() {
-			return Uri.parse(CONTENT_URI + "/create_sight/remote");
+		public static final Uri getFetchSightsByUserLocalUri(String user, String type, int count) {
+			return Uri.parse(CONTENT_URI + "/sight_by_user/" + user + "/type/" + type + "/count/" + count);
 		}
 
 		public static final Uri getCreateSightLocalUri() {
-			return Uri.parse(CONTENT_URI + "/create_sight/local");
+			return Uri.parse(CONTENT_URI + "/create_sight");
 		}
 
 		public static final Uri getFetchSightByUUIDUri(long uuid) {
 			return Uri.parse(CONTENT_URI + "/sight/" + uuid);
 		}
 
-//		public static final Uri getDeleteSightRemoteUri(long uuid) {
-//			return Uri.parse(CONTENT_URI + "/delete_sight/" + uuid + "/remote");
-//		}
-
 		public static final Uri getDeleteSightLocalUri(long uuid) {
-			return Uri.parse(CONTENT_URI + "/delete_sight/" + uuid + "/local");
+			return Uri.parse(CONTENT_URI + "/delete_sight/" + uuid);
 		}
 
-//		public static final Uri getEditSightRemoteUri() {
-//			return Uri.parse(CONTENT_URI + "/edit_sight/remote");
-//		}
-
-		public static final Uri getEditSightLocalUri() {
-			return Uri.parse(CONTENT_URI + "/edit_sight/local");
+		public static final Uri getEditSightLocalUri(long uuid) {
+			return Uri.parse(CONTENT_URI + "/edit_sight/" + uuid);
 		}
 
 		public static final ContentValues createContentValues(com.sighthunt.network.model.Sight sight) {
@@ -166,19 +150,26 @@ public final class Contract {
 		public static final String VOTE = "vote";
 
 		public static final Uri getInsertHuntLocalUri() {
-			return Uri.parse(CONTENT_URI + "/create_hunt/local");
-		}
-
-		public static final Uri getInsertHuntRemoteUri() {
-			return Uri.parse(CONTENT_URI + "/create_hunt/remote");
-		}
-
-		public static final Uri getFetchHuntsRemoteUri(String user) {
-			return Uri.parse(CONTENT_URI + "/fetch_hunts/" + user + "/remote");
+			return Uri.parse(CONTENT_URI + "/create_hunt");
 		}
 
 		public static Uri getCheckHuntUri(String user, long uuid) {
 			return Uri.parse(CONTENT_URI + "/hunt/" + user + "/sight/" + uuid);
+		}
+	}
+
+	public static final class Report implements BaseColumns {
+
+		public static final String TABLE_NAME = "report";
+
+		public static final String REPORTER = "reporter";
+
+		public static final String REASON = "reason";
+
+		public static final String SIGHT_UUID = "uuid";
+
+		public static final Uri getInsertReportLocalUri() {
+			return Uri.parse(CONTENT_URI + "/report_sight");
 		}
 	}
 

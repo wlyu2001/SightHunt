@@ -2,7 +2,33 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:gravity="center_horizontal">
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp"
+        android:layout_marginBottom="50dp">
+
+
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/logo_empty"/>
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="sight hunt"
+            android:textColor="@color/white"
+            android:textSize="22dp"/>
+
+    </LinearLayout>
 
     <EditText
         android:id="@+id/username"
@@ -16,16 +42,21 @@
         android:layout_height="wrap_content"
         android:hint="@string/hint_password"/>
 
+    <Button
+        android:id="@+id/loginButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/log_in_button"
+        android:gravity="center_horizontal"/>
+
+
     <TextView
         android:id="@+id/forgotPassword"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/forgot_password"/>
+        android:text="@string/forgot_password"
+        android:gravity="center_horizontal"
+        android:visibility="gone"/>
 
-    <Button
-    android:id="@+id/loginButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/log_in_button"/>
 
 </LinearLayout>
