@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.location.Location;
 import android.support.v4.app.Fragment;
 
-import com.sighthunt.activity.LocationAwareActivity;
+import com.sighthunt.activity.LocationConnectivityAwareActivity;
 import com.sighthunt.location.LocationHelper;
 
 
@@ -15,7 +15,7 @@ public abstract class LocationAwareFragment extends Fragment {
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
-		mHelper = ((LocationAwareActivity) getActivity()).getLocationHelper();
+		mHelper = ((LocationConnectivityAwareActivity) getActivity()).getLocationHelper();
 	}
 
 	public abstract void onRegionUpdated(String region, boolean changed);

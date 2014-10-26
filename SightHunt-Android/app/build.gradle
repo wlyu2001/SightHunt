@@ -3,11 +3,17 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 android {
     signingConfigs {
-        config {
+        release {
             keyAlias 'SightHuntKey'
             keyPassword 'lCdBLpa4DC643346'
             storeFile file('/Users/lingyu/Projects/SightHunt/sighthunt.jks')
             storePassword 'lCdBLpa4DC643346'
+        }
+        debug {
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+            storeFile file('/Users/lingyu/.android/debug.keystore')
+            storePassword 'android'
         }
     }
     compileSdkVersion 20
@@ -19,14 +25,19 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
+    def serverVersion = 1
     buildTypes {
         release {
             runProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.config
+            signingConfig signingConfigs.release
+            buildConfigField "String", "API_URL", "\"https://$serverVersion-dot-sight-hunt.appspot.com\""
         }
         debug {
             applicationIdSuffix '.debug'
+            signingConfig signingConfigs.debug
+            buildConfigField "String", "API_URL", "\"https://$serverVersion-dot-sight-hunt-test.appspot.com\""
         }
     }
     sourceSets {

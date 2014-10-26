@@ -1,7 +1,32 @@
-<FrameLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/emptyLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="bottom|center_horizontal"
+            android:text="@string/empty_sights"/>
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_weight="1"
+            android:src="@drawable/pointer"
+            android:scaleType="centerInside"
+            android:alpha="0.5"/>
+
+    </LinearLayout>
 
     <uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout
         android:id="@+id/ptr_layout"
@@ -10,16 +35,16 @@
 
         <!-- Your content, here we're using a ScrollView -->
 
-            <GridView
-                android:id="@+id/gridView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:numColumns="@integer/numColumns"
-                android:verticalSpacing="3dp"
-                android:horizontalSpacing="3dp"/>
+        <GridView
+            android:id="@+id/gridView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:horizontalSpacing="3dp"
+            android:numColumns="@integer/numColumns"
+            android:verticalSpacing="3dp"/>
 
 
     </uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout>
 
 
-</FrameLayout>
+</RelativeLayout>

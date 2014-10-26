@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.sighthunt.BuildConfig;
 import com.sighthunt.inject.Injectable;
 import com.sighthunt.util.PreferenceUtil;
 
@@ -15,7 +16,7 @@ public class SightHuntDatabaseHelper extends SQLiteOpenHelper implements Injecta
 	private static final String REAL_TYPE = " REAL";
 	private static final String COMMA_SEP = ",";
 
-	private static final String DATABASE_NAME = "sight.db";
+	private static final String DATABASE_NAME = "sights.db";
 	public static final int DATABASE_VERSION = 20;
 	private static final String SQL_CREATE_SIGHTS =
 			"CREATE TABLE " + Contract.Sight.TABLE_NAME + " (" +

@@ -11,7 +11,7 @@ public class NetworkStateChangeReceiver extends BroadcastReceiver {
 	public void onReceive(Context context, Intent intent) {
 		AccountUtils accountUtils = Injector.get(AccountUtils.class);
 
-		if (accountUtils.getUer() == null) {
+		if (accountUtils.getUsername() != null && accountUtils.getUer() == null) {
 			accountUtils.fetchUser();
 		}
 	}

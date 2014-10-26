@@ -10,8 +10,6 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.sighthunt.R;
-import com.sighthunt.activity.LocationAwareActivity;
-import com.sighthunt.data.Contract;
 import com.sighthunt.fragment.LocationAwareFragment;
 import com.sighthunt.util.ImageFiles;
 import com.sighthunt.view.CapturePreview;

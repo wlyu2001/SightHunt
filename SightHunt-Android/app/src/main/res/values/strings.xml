@@ -93,13 +93,15 @@
         <item>The sight violates my privacy (please contact us via email).</item>
     </string-array>
 
-    <string name="intro_your_city_title">Your city</string>
-    <string name="intro_your_city_body">Rediscover the city you live in</string>
+    <string name="intro_your_city_title">Game</string>
+    <string name="intro_your_city_body">Camera is your gun and city is your hunting ground</string>
     <string name="intro_travel_title">Travel</string>
-    <string name="intro_travel_body">Explore new places when you are on a trip</string>
+    <string name="intro_travel_body">Explore places when you are on a trip</string>
     <string name="intro_myth_title">Mystery</string>
-    <string name="intro_myth_body">Follow the hints </string>
-    <string name="intro_compete_title">Compete</string>
-    <string name="intro_compete_body">Keep scores for the thrill</string>
+    <string name="intro_myth_body">Follow the hints, use your knowledge, find the right angle</string>
+    <string name="intro_social_title">Social</string>
+    <string name="intro_social_body">Share what you see and know with others</string>
+
+    <string name="empty_sights">There isn\'t any sights in this region yet. \nBe the first to create one!</string>
 
 </resources>

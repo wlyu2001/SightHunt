@@ -4,8 +4,10 @@ import android.content.ContentValues;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
+import com.sighthunt.BuildConfig;
+
 public final class Contract {
-	public static final String AUTHORITY = "com.sighthunt.provider";
+	public static final String AUTHORITY = BuildConfig.PACKAGE_NAME;
 
 	public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY);
 

@@ -48,6 +48,7 @@ public class CapturePreview extends SurfaceView implements SurfaceHolder.Callbac
 		Camera.Parameters parameters = mCamera.getParameters();
 		parameters.getSupportedPreviewSizes();
 		parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+
 		mCamera.setParameters(parameters);
 		mCamera.startPreview();
 	}
@@ -202,6 +203,7 @@ public class CapturePreview extends SurfaceView implements SurfaceHolder.Callbac
 			//Log.i("focus_area", _x1 + ", " + _y1 + ", " + _x2 + "," + y2);
 			areas.add(new Camera.Area(targetFocusRect, 1000));
 			params.setFocusAreas(areas);
+			params.setMeteringAreas(areas);
 
 			mCamera.setParameters(params);
 			mCamera.autoFocus(null);

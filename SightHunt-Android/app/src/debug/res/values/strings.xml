@@ -2,6 +2,9 @@
 <resources>
 
     <string name="app_name">SightHunt-Debug</string>
-    <string name="api_key">AIzaSyCzsQUNW4Xlok4Tq8avlfeDBLH_a3WUqBQ</string>
+    <string name="api_key">AIzaSyBU8jufcEnvK1vK8C1L0KrMqx4nzhSW7jY</string>
+
+
+    <string name="facebook_app_id">1496384433969969</string>
 
 </resources>

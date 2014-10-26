@@ -17,7 +17,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
-import com.sighthunt.activity.LocationAwareActivity;
+import com.sighthunt.activity.LocationConnectivityAwareActivity;
 import com.sighthunt.dialog.DialogFactory;
 import com.sighthunt.dialog.DialogPresenter;
 import com.sighthunt.util.NetworkHelper;
@@ -39,7 +39,6 @@ public class LocationHelper implements
 	private static final long FASTEST_INTERVAL = 10 * 60 * 1000;
 	private boolean mUpdatesRequested;
 	private LocationRequest mLocationRequest;
-	private boolean mIsConnected;
 
 	private FragmentActivity mActivity;
 	private LocationClient mLocationClient;
@@ -58,10 +57,10 @@ public class LocationHelper implements
 	}
 
 	public boolean isConnected() {
-		return mIsConnected;
+		return mLocationClient.isConnected();
 	}
 
-	public LocationHelper(LocationAwareActivity activity) {
+	public LocationHelper(LocationConnectivityAwareActivity activity) {
 		mObserver = activity;
 		final int result = GooglePlayServicesUtil.isGooglePlayServicesAvailable(activity);
 		if (result != ConnectionResult.SUCCESS) {
@@ -90,6 +89,10 @@ public class LocationHelper implements
 		mLocationClient.disconnect();
 	}
 
+	public void connect() {
+		mLocationClient.connect();
+	}
+
 	public void onResume() {
 		if (mPrefs.contains(KEY_UPDATES_ON)) {
 			mUpdatesRequested = mPrefs.getBoolean(KEY_UPDATES_ON, false);
@@ -113,14 +116,12 @@ public class LocationHelper implements
 		//if (mUpdatesRequested) {
 		mLocationClient.requestLocationUpdates(mLocationRequest, this);
 		//}
-		mIsConnected = true;
 		mObserver.onLocationConnected();
 
 	}
 
 	@Override
 	public void onDisconnected() {
-		mIsConnected = false;
 		mObserver.onLocationDisconnected();
 	}
 
@@ -135,7 +136,6 @@ public class LocationHelper implements
 		} else {
 			DialogPresenter.showDialog(mActivity.getSupportFragmentManager(), DialogFactory.getConnectionFailedDialog(mActivity), "Connection failed");
 		}
-		mIsConnected = false;
 	}
 
 	public Location getLocation() {

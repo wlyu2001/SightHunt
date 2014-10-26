@@ -21,7 +21,7 @@ import com.sighthunt.util.Scores;
 import org.jetbrains.annotations.NotNull;
 import org.opencv.android.OpenCVLoader;
 
-public class MainActivity extends LocationAwareActivity implements AccountUtils.UserUpdatedCallback {
+public class MainActivity extends LocationConnectivityAwareActivity implements AccountUtils.UserUpdatedCallback {
 
 	ImageButton mButtonList;
 	ImageButton mButtonBrowse;

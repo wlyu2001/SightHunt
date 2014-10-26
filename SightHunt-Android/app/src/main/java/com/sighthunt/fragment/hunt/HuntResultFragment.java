@@ -143,7 +143,7 @@ public class HuntResultFragment extends Fragment {
 	}
 
 	private int matchImage() {
-		mImageMatcher = new ImageMatcher(FeatureDetector.ORB, DescriptorExtractor.ORB, DescriptorMatcher.BRUTEFORCE_HAMMING, 40, 0);
+		mImageMatcher = new ImageMatcher(FeatureDetector.ORB, DescriptorExtractor.ORB, DescriptorMatcher.BRUTEFORCE_HAMMING, 60, 0);
 		return mImageMatcher.getImageMatchingScore();
 	}
 

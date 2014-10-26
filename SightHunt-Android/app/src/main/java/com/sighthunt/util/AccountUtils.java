@@ -10,6 +10,8 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.facebook.Session;
+import com.sighthunt.BuildConfig;
+import com.sighthunt.R;
 import com.sighthunt.inject.Injectable;
 import com.sighthunt.inject.Injector;
 import com.sighthunt.network.ApiManager;
@@ -23,8 +25,6 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 public class AccountUtils implements Injectable {
-
-	public static final String ACCOUNT_TYPE = "com.sighthunt";
 	public static final String AUTH_TOKEN_TYPE = "default";
 
 	private Context mContext;
@@ -41,7 +41,7 @@ public class AccountUtils implements Injectable {
 			session.closeAndClearTokenInformation();
 		}
 
-		Account[] accounts = mAccountManager.getAccountsByType(ACCOUNT_TYPE);
+		Account[] accounts = mAccountManager.getAccountsByType(BuildConfig.PACKAGE_NAME);
 		for (Account account : accounts) {
 			mAccountManager.removeAccount(account, new AccountManagerCallback<Boolean>() {
 				@Override
@@ -78,7 +78,7 @@ public class AccountUtils implements Injectable {
 		mActivity = activity;
 		mTokenRequestCallback = callback;
 
-		Account[] accounts = mAccountManager.getAccountsByType(ACCOUNT_TYPE);
+		Account[] accounts = mAccountManager.getAccountsByType(BuildConfig.PACKAGE_NAME);
 		if (accounts.length == 0) {
 			addAccount(activity);
 			return false;
@@ -120,13 +120,13 @@ public class AccountUtils implements Injectable {
 	}
 
 	public void addAccount(final Activity activity) {
-		AccountManagerFuture<Bundle> future = mAccountManager.addAccount(ACCOUNT_TYPE, AUTH_TOKEN_TYPE, null, null, activity, new AccountManagerCallback<Bundle>() {
+		AccountManagerFuture<Bundle> future = mAccountManager.addAccount(BuildConfig.PACKAGE_NAME, AUTH_TOKEN_TYPE, null, null, activity, new AccountManagerCallback<Bundle>() {
 			@Override
 			public void run(AccountManagerFuture<Bundle> future) {
 				try {
 					Bundle result = future.getResult();
 					String name = result.getString(AccountManager.KEY_ACCOUNT_NAME);
-					getTokenForAccount(activity, new Account(name, ACCOUNT_TYPE));
+					getTokenForAccount(activity, new Account(name, BuildConfig.PACKAGE_NAME));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -135,7 +135,7 @@ public class AccountUtils implements Injectable {
 	}
 
 	public void invalidateToken() {
-		mAccountManager.invalidateAuthToken(ACCOUNT_TYPE, mToken);
+		mAccountManager.invalidateAuthToken(BuildConfig.PACKAGE_NAME, mToken);
 		getToken(mActivity, mTokenRequestCallback);
 	}
 

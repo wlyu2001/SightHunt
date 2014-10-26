@@ -2,6 +2,7 @@ package com.sighthunt.network;
 
 import android.content.Context;
 
+import com.sighthunt.BuildConfig;
 import com.sighthunt.R;
 import com.sighthunt.inject.Injectable;
 import com.sighthunt.network.model.Sight;
@@ -91,9 +92,6 @@ public class ApiManager implements Injectable {
 
 	}
 
-
-	private static final String API_URL = "https://sight-hunt.appspot.com";
-
 	private SightInterface mSightService;
 	private UserInterface mUserService;
 	private AccountUtils mAccountUtils;
@@ -133,7 +131,7 @@ public class ApiManager implements Injectable {
 		mKey = context.getString(R.string.api_key);
 
 		RestAdapter restAdapter = new RestAdapter.Builder()
-				.setEndpoint(API_URL)
+				.setEndpoint(BuildConfig.API_URL)
 				.setLogLevel(RestAdapter.LogLevel.FULL)
 				.setRequestInterceptor(mIntercetper)
 				.setErrorHandler(new ErrorHandler() {

@@ -8,10 +8,11 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 
+import com.sighthunt.BuildConfig;
 import com.sighthunt.R;
 
 public class ImageHelper {
-	private static final String IMAGE_URL_ROOT = "http://sight-hunt.appspot.com/image/serve";
+	private static final String IMAGE_URL_ROOT = BuildConfig.API_URL+"/image/serve";
 
 	public static String getImageUrl(String imageKey) {
 		return IMAGE_URL_ROOT + "?image_key=" + imageKey;

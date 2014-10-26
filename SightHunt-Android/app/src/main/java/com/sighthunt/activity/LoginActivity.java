@@ -12,6 +12,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.facebook.Session;
+import com.sighthunt.BuildConfig;
 import com.sighthunt.R;
 import com.sighthunt.auth.AccountAuthenticatorActivity;
 import com.sighthunt.auth.ServerAuthenticate;
@@ -42,7 +43,7 @@ public class LoginActivity extends AccountAuthenticatorActivity {
 	//everytime user manually login, or sign up. clear all accounts first..
 	public void clearAccounts() {
 
-		Account[] accounts = mAccountManager.getAccountsByType(AccountUtils.ACCOUNT_TYPE);
+		Account[] accounts = mAccountManager.getAccountsByType(BuildConfig.PACKAGE_NAME);
 		for (Account account : accounts) {
 			mAccountManager.removeAccount(account, null, null);
 		}
@@ -82,7 +83,7 @@ public class LoginActivity extends AccountAuthenticatorActivity {
 					if (!TextUtils.isEmpty(user.token)) {
 						final Intent intent = new Intent();
 						intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, username);
-						intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, AccountUtils.ACCOUNT_TYPE);
+						intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, BuildConfig.PACKAGE_NAME);
 						intent.putExtra(AccountManager.KEY_AUTHTOKEN, user.token);
 						intent.putExtra(ARG_PASSWORD, password);
 
@@ -117,7 +118,7 @@ public class LoginActivity extends AccountAuthenticatorActivity {
 					if (!TextUtils.isEmpty(user.token)) {
 						final Intent intent = new Intent();
 						intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, username);
-						intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, AccountUtils.ACCOUNT_TYPE);
+						intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, BuildConfig.PACKAGE_NAME);
 						intent.putExtra(AccountManager.KEY_AUTHTOKEN, user.token);
 						intent.putExtra(ARG_PASSWORD, password);
 						finishLogin(intent);
@@ -138,7 +139,7 @@ public class LoginActivity extends AccountAuthenticatorActivity {
 	private void finishLogin(Intent intent) {
 		String username = intent.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
 		String password = intent.getStringExtra(ARG_PASSWORD);
-		final Account account = new Account(username, AccountUtils.ACCOUNT_TYPE);
+		final Account account = new Account(username, BuildConfig.PACKAGE_NAME);
 
 			String authToken = intent.getStringExtra(AccountManager.KEY_AUTHTOKEN);
 			mAccountManager.addAccountExplicitly(account, password, null);

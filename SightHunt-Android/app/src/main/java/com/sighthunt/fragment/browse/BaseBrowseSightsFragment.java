@@ -40,6 +40,7 @@ public abstract class BaseBrowseSightsFragment extends LocationAwareFragment {
 	private int mCurrentOffset;
 	private PullToRefreshLayout mPullToRefreshLayout;
 	private boolean mUserScrolled;
+	private View mEmptyLayout;
 
 	SightCardViewAdapter mAdapter;
 	GridView mGridView;
@@ -63,6 +64,11 @@ public abstract class BaseBrowseSightsFragment extends LocationAwareFragment {
 					mHasMoreSights = false;
 				} else {
 					mHasMoreSights = true;
+				}
+				if (cursor.getCount() == 0) {
+					mEmptyLayout.setVisibility(View.VISIBLE);
+				} else {
+					mEmptyLayout.setVisibility(View.GONE);
 				}
 			}
 
@@ -102,7 +108,7 @@ public abstract class BaseBrowseSightsFragment extends LocationAwareFragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		final View view = inflater.inflate(R.layout.fragment_browse_sights, container, false);
-
+		mEmptyLayout = view.findViewById(R.id.emptyLayout);
 		mPullToRefreshLayout = (PullToRefreshLayout) view.findViewById(R.id.ptr_layout);
 		ActionBarPullToRefresh.from(getActivity())
 				.options(Options.create().headerLayout(R.layout.header_layout).build())
