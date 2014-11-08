@@ -40,6 +40,7 @@ public class ResultsFragment extends Fragment {
 	private boolean mHasMoreSights = true;
 	private int mCurrentOffset;
 	private boolean mUserScrolled;
+	private View mEmptyLayout;
 
 	private PullToRefreshLayout mPullToRefreshLayout;
 
@@ -62,6 +63,11 @@ public class ResultsFragment extends Fragment {
 					mHasMoreSights = false;
 				} else {
 					mHasMoreSights = true;
+				}
+				if (cursor.getCount() == 0) {
+					mEmptyLayout.setVisibility(View.VISIBLE);
+				} else {
+					mEmptyLayout.setVisibility(View.GONE);
 				}
 			}
 
@@ -95,7 +101,7 @@ public class ResultsFragment extends Fragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		final View view = inflater.inflate(R.layout.fragment_my_sights, container, false);
-
+		mEmptyLayout = view.findViewById(R.id.emptyLayout);
 		mPullToRefreshLayout = (PullToRefreshLayout) view.findViewById(R.id.ptr_layout);
 
 		ActionBarPullToRefresh.from(getActivity())

@@ -33,8 +33,9 @@ public abstract class LocationConnectivityAwareActivity extends FragmentActivity
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+
 		mLocationHelper = new LocationHelper(this);
+		super.onCreate(savedInstanceState);
 	}
 
 	@Override
