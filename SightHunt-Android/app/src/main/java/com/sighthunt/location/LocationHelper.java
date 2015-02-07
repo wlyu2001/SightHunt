@@ -75,7 +75,7 @@ public class LocationHelper implements
 		mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 		mLocationRequest.setInterval(UPDATE_INTERVAL);
 		mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
-		geocoder = new Geocoder(activity, Locale.getDefault());
+		geocoder = new Geocoder(activity, Locale.US);
 	}
 
 	public void onStart() {

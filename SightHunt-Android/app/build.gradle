@@ -22,14 +22,14 @@ android {
         applicationId "com.sighthunt"
         minSdkVersion 16
         targetSdkVersion 20
-        versionCode 3
+        versionCode 4
         versionName "1.0"
     }
 
     def serverVersion = 1
     buildTypes {
         release {
-            runProguard false
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
             buildConfigField "String", "API_URL", "\"https://$serverVersion-dot-sight-hunt.appspot.com\""
